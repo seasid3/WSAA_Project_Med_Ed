@@ -13,7 +13,7 @@ This web application allows College administrators to manage those applicants â€
 
 ### Live Application
 
-> **Hosted on PythonAnywhere:** https://OWoods.eu.pythonanywhere.com
+> **Hosted on PythonAnywhere:** https://owoods.eu.pythonanywhere.com
 
 ---
 
