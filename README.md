@@ -1,90 +1,134 @@
 # Web Services And Applications Project
 ## Author: Orla Woods
 
-This repository contains my project for the Web Services and Applications (WSAA) module at ATU. 
+This repository contains my project for the Web Services and Applications (WSAA) module at ATU.
 
-## Background
+---
 
-Create a Web application that uses RESTful APIs to perform CRUD operations to some data in one or more database tables, and/or some third party API. 
+## Application: RCPI BST Applicant Management System
 
-basic hosted Flask server that has a  1. REST API, (to perform CRUD operations) 2. One database table and 3. Accompanying web interface, to perform these CRUD operations. (eg using AJAX calls)
+I work in the Royal College of Physicians of Ireland (RCPI). Each year the College receives applications from doctors who have completed their medical degree and intern year and wish to begin Basic Specialist Training (BST) in one of four specialties: Obstetrics and Gynaecology, Histopathology, General Internal Medicine, and Paediatrics.
 
-I work in Royal College of Physicians of Ireland (RCPI). RCPI delivers postgraduate medical training, namely Basic Specialist Training (BST) in 4 specialties (Obstetrics and Gynaecology, Histopathology, General Internal Medicine and Paediatrics) and Higher Specialist Training (HST) in 29 specialties, including cardiology, neonatology, geriatric medicine, respiratory medicine, etc. 
-Each year, the College receives BST applications from doctors who have competed their medical degree and their intern year and wish to begin their specialist training. Therefore, using my workplace for context, I want to design an interface which will allow College administrators to log each of the applicants, their chosen training scheme, date of birth, and then automatically assign them an RCPI ID. I want to allow administrators to come back to the interface to add applicant's interview scores after interview (the basis upon which offers are made), whether or not the applicant was offered a place and whether this was accepted or not. Ideally then, administrators would be able to gather all of the acceptances for each specialty to create a final list of trainees for each of the 4 BST specialties. As this is a live database, any changes could be made (change acceptance to rejection), the list ranked from top interview score, descending, and when I pull an updated list this change will be reflected. This will be the API.
+This web application allows College administrators to manage those applicants — recording details, logging interview scores, marking offers, and tracking acceptances — through a clean browser interface backed by a REST API.
 
- 
-Server side:
-Part 1: As this needs to be hosted, create pythonanywhere account
-Part 2: Create the database table in mysql. The database will be call BST applicants and the attributes recorded will be “First Name”, “Surname”, DOB, BST Scheme, Interview Score, Place offered, Acceptance/Refusal
-Part 3: Write the DAO (BST_DAO.py) and test it can connect to the database. This is what is on pythonanywhere. Indicate the functions I want to do to the database e.g. update, delete (CRUD)
-Part 4: Write the Flask end points that map my API endpoints and test them (server.py). This calls the BST_DAO which will link to the database and interactions with the database. 
-Part 5: Connect the endpoints to the DAO and text (server.py) – in server.py call your DAO
-Test all above, server side done
+### Live Application
 
-Front end:
-Part 6: Make a front end (HTML webpage; BSTApplications.html) – call up a form and update
-Part 7: Make the functionality for the front end with JavaScript for functionality (BST_applications.js)
-Part 8: Have the front end call the backend (the API) in the javascript using AJAX (apps.js) to make the API calls (relative addresses are best) 
-Part 9: make it look nice (css)
-Note Parts 6-9 are the static pages
+> **Hosted on PythonAnywhere:** https://OWoods.pythonanywhere.com
 
-As part of this, I want the following
+---
 
--	Put each of HTML, CSS, Javascript, DAO, server etc. in their own file
--   No react code
--	HTML, CSS and javascript in separate files
--	Have testing within each step
--	Use the correct status codes
--	Can use abort()
--	Don’t use rendering templates
--	JSON output
--	Keep Flask functions as short as possible
--	If there is a lot to do send to a second or more function
--   Use a configuration file for database access
--   Use connection pooling in DAO
--   Do not allow SQL injection, do not directly code attributes
--   Include a README and a gitignore file
--   Save this repository showing all of the above
+## Project Structure
 
-The CRUD operations I will need to perform are:
-- Create for “First Name”, “Surname”, DOB, BST Scheme, Interview Score, Place offered, Acceptance/Refusal, RCPIID (auto-incremented automatically)
-- Update (modify) for all of the above mattributes, but not for RCPIID as there cannot be duplicates for this
-- Delete all or any of the above attributes for any applicant, including deletion of entire applicants
-- Read the list of all applicants, ranked by descending interview score
-- Read the list of all applicants who received offers of a place
-- Read the list of all applicants, being able to see who accepted offers and refused for each specialty
+```
+WSAA_Project_Med_Ed/
+├── server.py               # Flask app — all API endpoints
+├── BST_DAO.py              # Database access layer (connection pooling, parameterised queries)
+├── db_config.py            # DB credentials — NOT committed (see db_config_example.py)
+├── db_config_example.py    # Template showing required config keys
+├── schema.sql              # MySQL DDL — run once on PythonAnywhere to create the table
+├── requirements.txt        # Python dependencies
+├── static/
+│   ├── BSTApplications.html   # Single-page frontend
+│   ├── BST_applications.js    # All AJAX logic
+│   └── style.css              # RCPI-branded styling
+└── README.md
+```
 
-If First name, surname, DOB or BST scheme are not entered by the applicant an error message must appear asking for these. Only entry of all of these attributes will allow the creation of a RCPIID and addition to the database. 
+---
 
-To assist me with this, I have subscribed to Claude Code. 
+## API Endpoints
 
-### Request 1 to LLM 
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/applicants` | All applicants, ranked by interview score (desc) |
+| GET | `/applicants/<id>` | Single applicant |
+| GET | `/applicants/offers` | Applicants who received an offer, by scheme |
+| GET | `/applicants/acceptances` | Offered applicants with acceptance status, by scheme |
+| POST | `/applicants` | Create new applicant |
+| PUT | `/applicants/<id>` | Update applicant |
+| DELETE | `/applicants/<id>` | Delete applicant |
 
-To provide backgroud, I uploaded the project description and the description and project design I have in my README file. Claude's response was: 
+---
 
-This is a really well thought-out brief — very clear requirements. Let me summarise what we're building and then we'll go file by file:RCPI BST Applicant Management System
+## Database
 
-Flask + MySQL (PythonAnywhere)
-Single table: bst_applicants
-Full CRUD via REST API
-Vanilla JS frontend with AJAX (no React, no template rendering)
-Separate files: server.py, BST_DAO.py, db_config.py, BSTApplications.html, BST_applications.js, style.css
+Single table: `bst_applicants`
 
+| Column | Type | Notes |
+|--------|------|-------|
+| `rcppi_id` | INT AUTO_INCREMENT | Primary key, assigned automatically |
+| `first_name` | VARCHAR(50) | Required |
+| `surname` | VARCHAR(50) | Required |
+| `dob` | DATE | Required |
+| `bst_scheme` | ENUM | Required — one of the 4 BST specialties |
+| `interview_score` | DECIMAL(5,2) | Optional at creation |
+| `place_offered` | TINYINT(1) | 1 = yes, 0 = no, NULL = not yet decided |
+| `acceptance` | ENUM('accepted','refused') | Optional |
 
+---
 
-### How to run
+## How to Run Locally
 
+1. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
+2. **Set up the database**  
+   Run `schema.sql` against a local MySQL instance.
 
-### Expected output - assignment04-github.py
+3. **Configure credentials**  
+   Copy `db_config_example.py` to `db_config.py` and fill in your credentials.
 
- 
-## Requirements
+4. **Start the server**
+   ```bash
+   python server.py
+   ```
+   Then open `http://127.0.0.1:5000` in your browser.
 
+---
 
+## PythonAnywhere Deployment
 
+1. Create a PythonAnywhere account and a MySQL database named `rcppi_bst`.
+2. Run `schema.sql` in the MySQL console.
+3. Upload all files to `/home/OWoods/rcppi_bst/`.
+4. Create `db_config.py` manually on PythonAnywhere (do **not** push it to GitHub).
+5. Set up a new web app pointing to `/home/OWoods/rcppi_bst/server.py`, Python 3.11.
+6. Install requirements: `pip3.11 install --user flask mysql-connector-python`
+7. Reload the web app.
+
+---
+
+## AI Assistance — Prompt Log
+
+This project was built with the assistance of Claude (Anthropic).
+
+### Prompt 1
+Provided the full project description, background brief, and technical requirements (Flask, CRUD, MySQL, AJAX, no React, separate files, connection pooling, no SQL injection). Claude summarised the architecture and began generating files.
+
+### Prompt 2
+Specified the app should be an RCPI BST Applicant Management System, defined the database columns, CRUD operations needed, read queries (ranked list, offers, acceptances by specialty), and validation rules (first name, surname, DOB and scheme required before creation).
+
+### Prompt 3
+Confirmed PythonAnywhere username as `OWoods`, confirmed folder name `rcppi_bst` (double-p). Claude updated all references accordingly.
+
+### Prompt 4 (Claude Code)
+Continued in Claude Code CLI. Claude recreated all project files from scratch based on the README and prior conversation context, then pushed them to GitHub.
+
+---
 
 ## Technologies Used
 
+- **Python 3.11** / **Flask** — server and REST API
+- **MySQL** — database (hosted on PythonAnywhere)
+- **mysql-connector-python** — DB driver with connection pooling
+- **Vanilla JavaScript** — frontend AJAX (no React, no framework)
+- **HTML5 / CSS3** — single-page interface
 
-## END
+## References
+
+- [Flask Documentation](https://flask.palletsprojects.com/)
+- [mysql-connector-python docs](https://dev.mysql.com/doc/connector-python/en/)
+- [PythonAnywhere help](https://help.pythonanywhere.com/)
+- Claude (Anthropic) — AI assistant used throughout (prompts logged above)
