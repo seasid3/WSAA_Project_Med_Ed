@@ -9,7 +9,10 @@
 <body>
 
 <header>
-    <h1>RCPI Basic Specialist Training Applicant Management System</h1>
+    <div class="header-content">
+        <h1>RCPI Basic Specialist Training Applicant Management System</h1>
+        <img src="/static/rcpi_logo.png" alt="RCPI Logo" class="header-logo">
+    </div>
 </header>
 
 <nav class="tabs">
@@ -119,6 +122,7 @@
             <h3>Acceptance Management</h3>
             <p class="hint">Record whether each offered applicant has accepted or declined their place.</p>
             <div id="msg-acceptances" class="message"></div>
+            <button class="btn-primary" onclick="downloadTraineeList()">Final list of Trainees</button>
         </div>
         <div id="acceptances-results"></div>
     </section>

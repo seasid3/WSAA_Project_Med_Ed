@@ -299,6 +299,37 @@ function buildAcceptanceTable(applicants) {
     </table>`;
 }
 
+async function downloadTraineeList() {
+    const res = await fetch(`${API}/acceptances`);
+    const data = await res.json();
+    const trainees = data.filter(a => a.acceptance === 'accepted');
+
+    if (!trainees.length) {
+        showMsg('msg-acceptances', 'No accepted trainees to download yet.', true);
+        return;
+    }
+
+    function csvCell(val) {
+        const s = String(val ?? '');
+        return s.includes(',') || s.includes('"') || s.includes('\n')
+            ? `"${s.replace(/"/g, '""')}"` : s;
+    }
+
+    const headers = ['RCPPI ID', 'First Name', 'Surname', 'Date of Birth', 'BST Scheme', 'Interview Score'];
+    const rows = trainees.map(a => [
+        a.rcppi_id, a.first_name, a.surname, a.dob, a.bst_scheme, a.interview_score ?? ''
+    ].map(csvCell));
+
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'BST_Final_Trainee_List.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
 async function setAcceptance(id, acceptance) {
     const res = await fetch(`${API}/${id}/acceptance`, {
         method: 'PUT',
