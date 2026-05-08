@@ -163,6 +163,32 @@ def update_acceptance(rcppi_id, acceptance):
     conn.close()
     return rows
 
+def cascade_offer(rcppi_id):
+    conn = get_connection()
+    applicant = conn.execute(
+        "SELECT bst_scheme, application_year FROM bst_applicants WHERE rcppi_id = ?", (rcppi_id,)
+    ).fetchone()
+    if not applicant:
+        conn.close()
+        return None
+    scheme, year = applicant['bst_scheme'], applicant['application_year']
+    next_one = conn.execute(
+        "SELECT rcppi_id, first_name, surname FROM bst_applicants "
+        "WHERE bst_scheme = ? AND application_year = ? AND interview_status = 'completed' "
+        "AND interview_score IS NOT NULL AND place_offered = 0 "
+        "ORDER BY interview_score DESC LIMIT 1",
+        (scheme, year)
+    ).fetchone()
+    if next_one:
+        conn.execute(
+            "UPDATE bst_applicants SET place_offered = 1 WHERE rcppi_id = ?", (next_one['rcppi_id'],)
+        )
+        conn.commit()
+        conn.close()
+        return dict(next_one)
+    conn.close()
+    return None
+
 def delete(rcppi_id):
     conn = get_connection()
     cursor = conn.execute(

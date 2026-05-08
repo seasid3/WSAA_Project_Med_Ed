@@ -26,6 +26,7 @@
     <button class="tab-btn" onclick="showTab('interviews', this)">Interviews</button>
     <button class="tab-btn" onclick="showTab('offers', this)">Offers</button>
     <button class="tab-btn" onclick="showTab('acceptances', this)">Acceptances</button>
+    <button class="tab-btn" onclick="showTab('trainees', this)">Trainees</button>
 </nav>
 
 <main>
@@ -126,14 +127,24 @@
     <section id="tab-acceptances" class="tab-content">
         <div class="card">
             <h3>Acceptance Management</h3>
-            <p class="hint">Record whether each offered applicant has accepted or declined their place.</p>
+            <p class="hint">Record whether each offered applicant has accepted or declined their place. If an applicant declines, the next highest-ranked applicant in that specialty will automatically receive an offer.</p>
             <div id="msg-acceptances" class="message"></div>
-            <button class="btn-primary" onclick="downloadTraineeList()">Final list of Trainees</button>
         </div>
         <div id="acceptances-results"></div>
     </section>
 
 </main>
+
+    <!-- ── Tab 5: Trainees ───────────────────────────────────────── -->
+    <section id="tab-trainees" class="tab-content">
+        <div class="card">
+            <h3>Final Trainee List</h3>
+            <p class="hint">Applicants who have accepted their offer of a BST training place.</p>
+            <button class="btn-primary" onclick="downloadTraineeList()">Final list of Trainees</button>
+            <div id="msg-trainees" class="message" style="margin-top:1rem"></div>
+        </div>
+        <div id="trainees-results"></div>
+    </section>
 
 <!-- ── Interview Modal ──────────────────────────────────────── -->
 <div id="interview-modal" class="modal hidden">

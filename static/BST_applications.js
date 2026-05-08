@@ -63,6 +63,7 @@ function showTab(name, btn) {
     if (name === 'interviews')   loadInterviews();
     if (name === 'offers')       loadOfferResults();
     if (name === 'acceptances')  loadAcceptances();
+    if (name === 'trainees')     loadTrainees();
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -371,7 +372,7 @@ async function downloadTraineeList() {
     const trainees = data.filter(a => a.acceptance === 'accepted');
 
     if (!trainees.length) {
-        showMsg('msg-acceptances', 'No accepted trainees to download yet.', true);
+        showMsg('msg-trainees', 'No accepted trainees to download yet.', true);
         return;
     }
 
@@ -403,11 +404,53 @@ async function setAcceptance(id, acceptance) {
         body: JSON.stringify({ acceptance })
     });
     if (res.ok) {
-        showMsg('msg-acceptances', `RCPPI ${id} marked as ${acceptance}.`, false);
+        const result = await res.json();
+        let msg = `RCPPI ${id} marked as ${acceptance === 'refused' ? 'not accepted' : 'accepted'}.`;
+        if (result.cascaded_to) {
+            msg += ` Offer automatically assigned to ${result.cascaded_to.first_name} ${result.cascaded_to.surname} (RCPPI ${result.cascaded_to.rcppi_id}).`;
+        }
+        showMsg('msg-acceptances', msg, false);
         loadAcceptances();
     } else {
         showMsg('msg-acceptances', 'Error updating acceptance.', true);
     }
+}
+
+// ── Tab 5: Trainees ───────────────────────────────────────────
+async function loadTrainees() {
+    const res = await fetch(`${API}/acceptances?year=${currentYear}`);
+    const data = await res.json();
+    const accepted = data.filter(a => a.acceptance === 'accepted');
+    const container = document.getElementById('trainees-results');
+    container.innerHTML = '';
+    if (!accepted.length) {
+        container.innerHTML = '<div class="card"><p class="hint">No trainees have accepted their place yet.</p></div>';
+        return;
+    }
+    const schemes = ['Obstetrics and Gynaecology', 'Histopathology', 'General Internal Medicine', 'Paediatrics'];
+    schemes.forEach(scheme => {
+        const group = accepted.filter(a => a.bst_scheme === scheme);
+        if (!group.length) return;
+        const div = document.createElement('div');
+        div.className = 'card scheme-group';
+        div.innerHTML = `<h4>${scheme} <span class="scheme-meta">${group.length} trainee(s)</span></h4>` + buildTraineeTable(group);
+        container.appendChild(div);
+    });
+}
+
+function buildTraineeTable(applicants) {
+    const rows = applicants.map((a, i) => `
+        <tr>
+            <td>${i + 1}</td>
+            <td>${a.rcppi_id}</td>
+            <td>${a.first_name} ${a.surname}</td>
+            <td>${a.dob}</td>
+            <td>${a.interview_score}</td>
+        </tr>`).join('');
+    return `<table>
+        <thead><tr><th>Rank</th><th>RCPPI ID</th><th>Name</th><th>DOB</th><th>Interview Score</th></tr></thead>
+        <tbody>${rows}</tbody>
+    </table>`;
 }
 
 // ── Startup ───────────────────────────────────────────────────

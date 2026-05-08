@@ -79,7 +79,8 @@ def update_acceptance(rcppi_id):
     rows = dao.update_acceptance(rcppi_id, acceptance)
     if rows == 0:
         abort(404)
-    return jsonify({'updated': rows})
+    cascaded_to = dao.cascade_offer(rcppi_id) if acceptance == 'refused' else None
+    return jsonify({'updated': rows, 'cascaded_to': cascaded_to})
 
 @app.route('/applicants/<int:rcppi_id>', methods=['DELETE'])
 def delete(rcppi_id):
