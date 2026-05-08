@@ -1,5 +1,5 @@
 :root {
-    --navy:        #11217D;
+    --navy:        #0D1A64;
     --teal:        #007b8a;
     --light-teal:  #e0f4f6;
     --white:       #ffffff;
@@ -23,15 +23,28 @@ body {
 header {
     background: var(--navy);
     color: var(--white);
-    padding: 1rem 2rem;
+    padding: 0 2rem;
 }
 .header-content {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-between;
+    min-height: 72px;
 }
-header h1 { font-size: 1.35rem; letter-spacing: 0.3px; }
-.header-logo { height: 70px; width: auto; }
+header h1 {
+    font-size: 1.35rem;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+}
+.header-logo {
+    display: block;
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+    align-self: stretch;
+}
 
 /* Tabs */
 .tabs {
