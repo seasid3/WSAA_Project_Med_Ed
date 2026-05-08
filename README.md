@@ -47,7 +47,8 @@ WSAA_Project_Med_Ed/
 | GET | `/years` | All years with applicant data |
 | POST | `/applicants` | Create new applicant |
 | PUT | `/applicants/<id>/interview` | Record interview outcome |
-| POST | `/applicants/assign-offers?year=YYYY` | Auto-assign top 10 offers per specialty |
+| GET | `/scheme-limits` | Returns the maximum trainee places per specialty |
+| POST | `/applicants/assign-offers?year=YYYY` | Auto-assign offers per specialty up to the scheme limit |
 | PUT | `/applicants/<id>/acceptance` | Record acceptance or refusal (triggers cascade offer if refused) |
 | DELETE | `/applicants/<id>` | Delete applicant |
 
@@ -69,6 +70,21 @@ SQLite — single file (`rcppi_bst.db`), created automatically on first run. Sin
 | `interview_score` | REAL | Recorded after interview |
 | `place_offered` | INTEGER | 1 = yes, 0 = no, NULL = not yet decided |
 | `acceptance` | TEXT | accepted / refused |
+
+### Why SQLite and not MySQL
+
+The original design called for MySQL, which is the database I am more familiar with from a work context and which would be the natural choice for a production system. However, two constraints made MySQL impossible for this project:
+
+1. **PythonAnywhere free tier does not include MySQL.** The free plan provides web hosting and a Bash console but does not provision a MySQL database. Upgrading to a paid plan would have been required to use MySQL on PythonAnywhere itself.
+
+2. **External database connections are blocked on the free tier.** An alternative was explored: hosting the MySQL database on a local WAMP server and connecting to it from PythonAnywhere over the internet. This is not possible because PythonAnywhere's free tier restricts outbound network connections — only a small whitelist of external hosts is reachable. A local WAMP server on a home or office network is not on that whitelist, so the connection would be refused before it even reached the database.
+
+SQLite was chosen for the following reasons:
+
+- It is built into Python — no separate installation, no server process, no credentials to manage.
+- The database is a single file (`rcppi_bst.db`) stored alongside the application on the PythonAnywhere server, so no network connection is needed at all.
+- For an administrative application used by a small number of College staff, SQLite's single-writer model is not a limitation — concurrent writes are not expected.
+- All queries use parameterised placeholders (`?`) exactly as they would with MySQL, so the DAO layer would be straightforward to swap out if a MySQL host became available in future.
 
 ---
 
@@ -111,7 +127,7 @@ SQLite — single file (`rcppi_bst.db`), created automatically on first run. Sin
 
 ## AI Assistance — Prompt Log
 
-This project was built with the assistance of Claude (Anthropic) across two sessions: Claude.ai (web chat) and Claude Code (CLI). All prompts are documented below, with notes indicating where AI help was required for technical implementation and where design decisions were made by the author for usability.
+This project was built with the assistance of Claude (Anthropic) across three sessions: Claude.ai (web chat) and Claude Code (CLI). All prompts are documented below, with notes indicating where AI help was required for technical implementation and where design decisions were made by the author for usability.
 
 ---
 
@@ -257,6 +273,27 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 **Author designed:** The decision to use inline link text rather than a button for a cleaner, less cluttered interface.  
 **AI helped with:** Implementing the HTML/CSS change.
+
+---
+
+### Session 3 — Claude Code (CLI, continued)
+
+#### Prompt 16 — Per-Specialty Trainee Limits and Offer Numbering
+> *"The amount of trainees offered places for each of the specialties must be the following... Obstetrics and Gynaecology: 7 / Histopathology: 4 / Paediatrics: 8 / General Internal Medicine: 15. Do not allow the system to have more than this number of trainees in the final list of acceptees for csv download."*  
+> *"Make a note in the output that these are the maximum number or indicate the offer is offer 1 of 4, 2 of 4 etc for histopathology for example"*
+
+**Author designed:** The specific trainee limits per specialty, which reflect the actual BST intake capacity at RCPI for each scheme. The requirement to display numbered offers ("Offer 1 of 4") so administrators can see at a glance how many of the available places have been filled.  
+**AI helped with:** Updating the DAO to use per-specialty limits (replacing the previous hardcoded value of 10), adding a `/scheme-limits` API endpoint, updating the Offers tab to display "Offer X of Y" badges, updating the Trainees tab to display "Trainee X of Y", and capping the CSV download to the scheme limit per specialty.
+
+---
+
+#### Prompt 17 — Add Applicant Button Repositioning
+> *"Move the 'add applicant' button to the left hand side, under the BST Scheme drop down menu"*  
+> *"Make the add applicant button only slightly wider than the text. It is far too big"*  
+> *"It is at the left hand side of the BST scheme drop down, align it to the right hand side of the dropdown"*
+
+**Author designed:** The decision to move the button closer to the last field the user fills in (BST Scheme) to improve form flow — the natural next action after selecting a scheme is to submit.  
+**AI helped with:** Repositioning the button within the CSS grid using a spacer element, applying `width: fit-content` to size the button to its text, and using `justify-self: end` to right-align it under the dropdown.
 
 ---
 
