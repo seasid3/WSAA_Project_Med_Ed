@@ -23,28 +23,15 @@ body {
 header {
     background: var(--navy);
     color: var(--white);
-    padding: 0 2rem;
+    padding: 0.75rem 2rem;
 }
 .header-content {
     display: flex;
-    align-items: stretch;
-    justify-content: space-between;
-    min-height: 72px;
-}
-header h1 {
-    font-size: 1.35rem;
-    letter-spacing: 0.3px;
-    display: flex;
     align-items: center;
-    padding: 1rem 0;
+    justify-content: space-between;
 }
-.header-logo {
-    display: block;
-    height: 100%;
-    width: auto;
-    object-fit: contain;
-    align-self: stretch;
-}
+header h1 { font-size: 1.35rem; letter-spacing: 0.3px; }
+.header-logo { height: 80px; width: auto; }
 
 /* Tabs */
 .tabs {
