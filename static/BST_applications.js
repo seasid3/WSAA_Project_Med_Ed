@@ -91,10 +91,13 @@ async function loadAllApplicants() {
         tbody.innerHTML = '<tr><td colspan="10" class="empty">No applicants yet.</td></tr>';
         return;
     }
+    let rank = 1;
     data.forEach(a => {
         const tr = document.createElement('tr');
         if (a.interview_status === 'withdrawn') tr.classList.add('row-withdrawn');
+        const rankDisplay = a.interview_score !== null ? rank++ : '—';
         tr.innerHTML = `
+            <td>${rankDisplay}</td>
             <td>${a.rcppi_id}</td>
             <td>${a.first_name}</td>
             <td>${a.surname}</td>

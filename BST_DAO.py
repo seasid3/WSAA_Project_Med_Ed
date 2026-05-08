@@ -48,7 +48,7 @@ def init_db():
 def get_all():
     conn = get_connection()
     rows = conn.execute(
-        "SELECT * FROM bst_applicants ORDER BY rcppi_id ASC"
+        "SELECT * FROM bst_applicants ORDER BY interview_score DESC, rcppi_id ASC"
     ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
