@@ -147,9 +147,13 @@ tbody tr:hover { background: var(--light-teal); }
 tbody tr:last-child td { border-bottom: none; }
 td.empty { text-align: center; color: #888; padding: 1.5rem; }
 
-.row-accepted td { background: #eafaf1; }
-.row-refused  td { background: #fdf2f2; }
+.row-accepted  td { background: #eafaf1; }
+.row-refused   td { background: #fdf2f2; }
 .row-withdrawn td { opacity: 0.6; }
+.row-offered   td { background: #eaf3ff; }
+.row-no-offer  td { background: #fafafa; color: #888; }
+
+.scheme-meta { font-size: 0.8rem; font-weight: 400; color: #555; margin-left: 0.5rem; }
 
 /* Badges */
 .badge {

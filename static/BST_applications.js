@@ -275,33 +275,42 @@ async function assignOffers() {
 }
 
 async function loadOfferResults() {
-    const res = await fetch(`${API}/offers?year=${currentYear}`);
-    const data = await res.json();
+    const res = await fetch(`${API}?year=${currentYear}`);
+    const all = await res.json();
     const container = document.getElementById('offers-results');
     container.innerHTML = '';
-    if (!data.length) return;
 
-    const schemes = [...new Set(data.map(a => a.bst_scheme))];
+    const scored = all.filter(a => a.interview_status === 'completed' && a.interview_score !== null);
+    if (!scored.length) return;
+
+    const schemes = ['Obstetrics and Gynaecology', 'Histopathology', 'General Internal Medicine', 'Paediatrics'];
     schemes.forEach(scheme => {
-        const group = data.filter(a => a.bst_scheme === scheme);
+        const group = scored
+            .filter(a => a.bst_scheme === scheme)
+            .sort((a, b) => b.interview_score - a.interview_score);
+        if (!group.length) return;
+        const offered = group.filter(a => a.place_offered === 1).length;
         const div = document.createElement('div');
         div.className = 'card scheme-group';
-        div.innerHTML = `<h4>${scheme} — ${group.length} offer(s)</h4>` + buildRankedTable(group);
+        div.innerHTML = `<h4>${scheme} <span class="scheme-meta">${group.length} scored — ${offered} offered</span></h4>`
+            + buildRankedTable(group);
         container.appendChild(div);
     });
 }
 
 function buildRankedTable(applicants) {
     const rows = applicants.map((a, i) => `
-        <tr>
-            <td>${i + 1}</td>
+        <tr class="${a.place_offered === 1 ? 'row-offered' : 'row-no-offer'}">
+            <td><strong>${i + 1}</strong></td>
             <td>${a.rcppi_id}</td>
             <td>${a.first_name} ${a.surname}</td>
-            <td>${a.interview_score ?? '—'}</td>
-            <td>${acceptanceBadge(a.acceptance)}</td>
+            <td>${a.interview_score}</td>
+            <td>${a.place_offered === 1
+                ? '<span class="badge badge-green">Offered</span>'
+                : '<span class="badge badge-grey">No Offer</span>'}</td>
         </tr>`).join('');
     return `<table>
-        <thead><tr><th>Rank</th><th>RCPPI ID</th><th>Name</th><th>Score</th><th>Acceptance</th></tr></thead>
+        <thead><tr><th>Rank</th><th>RCPPI ID</th><th>Name</th><th>Interview Score</th><th>Offer Status</th></tr></thead>
         <tbody>${rows}</tbody>
     </table>`;
 }
