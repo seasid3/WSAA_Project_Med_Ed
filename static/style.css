@@ -23,7 +23,7 @@ body {
 header {
     background: var(--navy);
     color: var(--white);
-    padding: 0.75rem 2rem;
+    padding: 8px 2rem;
 }
 .header-content {
     display: flex;
@@ -31,7 +31,7 @@ header {
     justify-content: space-between;
 }
 header h1 { font-size: 1.35rem; letter-spacing: 0.3px; }
-.header-logo { height: 120px; width: auto; }
+.header-logo { height: 120px; width: auto; display: block; }
 
 /* Tabs */
 .tabs {
