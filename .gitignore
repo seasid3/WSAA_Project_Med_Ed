@@ -217,5 +217,5 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Database credentials — never commit real credentials
-db_config.py
+# SQLite database file — contains live data, not committed
+*.db

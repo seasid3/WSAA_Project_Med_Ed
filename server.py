@@ -3,6 +3,8 @@ import BST_DAO as dao
 
 app = Flask(__name__, static_folder='static')
 
+dao.init_db()
+
 REQUIRED_FIELDS = ['first_name', 'surname', 'dob', 'bst_scheme']
 
 def validate_required(data):

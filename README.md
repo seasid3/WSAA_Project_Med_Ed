@@ -22,10 +22,9 @@ This web application allows College administrators to manage those applicants �
 ```
 WSAA_Project_Med_Ed/
 ├── server.py               # Flask app — all API endpoints
-├── BST_DAO.py              # Database access layer (connection pooling, parameterised queries)
-├── db_config.py            # DB credentials — NOT committed (see db_config_example.py)
-├── db_config_example.py    # Template showing required config keys
-├── schema.sql              # MySQL DDL — run once on PythonAnywhere to create the table
+├── BST_DAO.py              # Database access layer (parameterised queries, no SQL injection)
+├── db_config.py            # Database file path config
+├── schema.sql              # SQLite DDL — applied automatically on first run
 ├── requirements.txt        # Python dependencies
 ├── static/
 │   ├── BSTApplications.html   # Single-page frontend
@@ -52,18 +51,18 @@ WSAA_Project_Med_Ed/
 
 ## Database
 
-Single table: `bst_applicants`
+SQLite — single file (`rcppi_bst.db`), created automatically on first run. Single table: `bst_applicants`.
 
 | Column | Type | Notes |
 |--------|------|-------|
-| `rcppi_id` | INT AUTO_INCREMENT | Primary key, assigned automatically |
-| `first_name` | VARCHAR(50) | Required |
-| `surname` | VARCHAR(50) | Required |
-| `dob` | DATE | Required |
-| `bst_scheme` | ENUM | Required — one of the 4 BST specialties |
-| `interview_score` | DECIMAL(5,2) | Optional at creation |
-| `place_offered` | TINYINT(1) | 1 = yes, 0 = no, NULL = not yet decided |
-| `acceptance` | ENUM('accepted','refused') | Optional |
+| `rcppi_id` | INTEGER PRIMARY KEY | Auto-assigned |
+| `first_name` | TEXT | Required |
+| `surname` | TEXT | Required |
+| `dob` | TEXT | Required |
+| `bst_scheme` | TEXT | Required — one of the 4 BST specialties |
+| `interview_score` | REAL | Optional at creation |
+| `place_offered` | INTEGER | 1 = yes, 0 = no, NULL = not yet decided |
+| `acceptance` | TEXT | 'accepted' or 'refused', optional |
 
 ---
 
@@ -74,29 +73,33 @@ Single table: `bst_applicants`
    pip install -r requirements.txt
    ```
 
-2. **Set up the database**  
-   Run `schema.sql` against a local MySQL instance.
-
-3. **Configure credentials**  
-   Copy `db_config_example.py` to `db_config.py` and fill in your credentials.
-
-4. **Start the server**
+2. **Start the server**
    ```bash
    python server.py
    ```
+   The SQLite database file is created automatically on first run.  
    Then open `http://127.0.0.1:5000` in your browser.
 
 ---
 
 ## PythonAnywhere Deployment
 
-1. Create a PythonAnywhere account and a MySQL database named `rcppi_bst`.
-2. Run `schema.sql` in the MySQL console.
-3. Upload all files to `/home/OWoods/rcppi_bst/`.
-4. Create `db_config.py` manually on PythonAnywhere (do **not** push it to GitHub).
-5. Set up a new web app pointing to `/home/OWoods/rcppi_bst/server.py`, Python 3.11.
-6. Install requirements: `pip3.11 install --user flask mysql-connector-python`
-7. Reload the web app.
+1. Open a Bash console on PythonAnywhere and run:
+   ```bash
+   cd ~ && git clone https://github.com/seasid3/WSAA_Project_Med_Ed /home/OWoods/rcppi_bst
+   ```
+2. Install Flask:
+   ```bash
+   pip3.11 install --user flask
+   ```
+3. Set up the web app — point it to `/home/OWoods/rcppi_bst/server.py`, Python 3.11.
+4. Edit the WSGI file to contain:
+   ```python
+   import sys
+   sys.path.insert(0, '/home/OWoods/rcppi_bst')
+   from server import app as application
+   ```
+5. Click **Reload**. The SQLite database is created automatically on first request.
 
 ---
 
@@ -121,8 +124,7 @@ Continued in Claude Code CLI. Claude recreated all project files from scratch ba
 ## Technologies Used
 
 - **Python 3.11** / **Flask** — server and REST API
-- **MySQL** — database (hosted on PythonAnywhere)
-- **mysql-connector-python** — DB driver with connection pooling
+- **SQLite** — lightweight file-based database (built into Python, no server required)
 - **Vanilla JavaScript** — frontend AJAX (no React, no framework)
 - **HTML5 / CSS3** — single-page interface
 
