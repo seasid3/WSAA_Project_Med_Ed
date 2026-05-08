@@ -7,45 +7,24 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>RCPI Basic Specialist Training</h1>
-        <h2>Applicant Management System</h2>
-    </header>
 
-    <nav class="tabs">
-        <button class="tab-btn active" onclick="showTab('all')">All Applicants</button>
-        <button class="tab-btn" onclick="showTab('add')">Add New</button>
-        <button class="tab-btn" onclick="showTab('offers')">Offers</button>
-        <button class="tab-btn" onclick="showTab('acceptances')">Acceptances</button>
-    </nav>
+<header>
+    <h1>RCPI Basic Specialist Training Applicant Management System</h1>
+</header>
 
-    <main>
-        <!-- All Applicants -->
-        <section id="tab-all" class="tab-content active">
-            <h3>All Applicants <span class="subtitle">(ranked by interview score)</span></h3>
-            <div id="msg-all" class="message"></div>
-            <div class="table-wrap">
-                <table id="tbl-all">
-                    <thead>
-                        <tr>
-                            <th>RCPPI ID</th>
-                            <th>First Name</th>
-                            <th>Surname</th>
-                            <th>DOB</th>
-                            <th>Scheme</th>
-                            <th>Score</th>
-                            <th>Offered</th>
-                            <th>Acceptance</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="body-all"></tbody>
-                </table>
-            </div>
-        </section>
+<nav class="tabs">
+    <button class="tab-btn active" onclick="showTab('applications', this)">Applications</button>
+    <button class="tab-btn" onclick="showTab('interviews', this)">Interviews</button>
+    <button class="tab-btn" onclick="showTab('offers', this)">Offers</button>
+    <button class="tab-btn" onclick="showTab('acceptances', this)">Acceptances</button>
+</nav>
 
-        <!-- Add New -->
-        <section id="tab-add" class="tab-content">
+<main>
+
+    <!-- ── Tab 1: Applications ─────────────────────────────── -->
+    <section id="tab-applications" class="tab-content active">
+
+        <div class="card">
             <h3>Add New Applicant</h3>
             <div id="msg-add" class="message"></div>
             <form id="form-add" onsubmit="submitAdd(event)">
@@ -55,106 +34,130 @@
                     <label>Date of Birth *<input type="date" name="dob" required></label>
                     <label>BST Scheme *
                         <select name="bst_scheme" required>
-                            <option value="">-- Select --</option>
+                            <option value="">-- Select Scheme --</option>
                             <option>Obstetrics and Gynaecology</option>
                             <option>Histopathology</option>
                             <option>General Internal Medicine</option>
                             <option>Paediatrics</option>
-                        </select>
-                    </label>
-                    <label>Interview Score<input type="number" name="interview_score" step="0.01" min="0" max="100"></label>
-                    <label>Place Offered
-                        <select name="place_offered">
-                            <option value="">-- Not yet --</option>
-                            <option value="1">Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                    </label>
-                    <label>Acceptance
-                        <select name="acceptance">
-                            <option value="">-- Pending --</option>
-                            <option value="accepted">Accepted</option>
-                            <option value="refused">Refused</option>
                         </select>
                     </label>
                 </div>
                 <button type="submit" class="btn-primary">Add Applicant</button>
             </form>
-        </section>
+        </div>
 
-        <!-- Offers -->
-        <section id="tab-offers" class="tab-content">
-            <h3>Applicants with Offers</h3>
-            <div id="msg-offers" class="message"></div>
+        <div class="card">
+            <div class="section-header">
+                <h3>All Applicants</h3>
+                <button class="btn-secondary" onclick="toggleAllApplicants(this)">View All Applicants ▼</button>
+            </div>
+            <div id="msg-all" class="message"></div>
+            <div id="all-applicants-section" class="hidden">
+                <div class="table-wrap">
+                    <table id="tbl-all">
+                        <thead>
+                            <tr>
+                                <th>RCPPI ID</th>
+                                <th>First Name</th>
+                                <th>Surname</th>
+                                <th>DOB</th>
+                                <th>Scheme</th>
+                                <th>Interview Status</th>
+                                <th>Score</th>
+                                <th>Offered</th>
+                                <th>Acceptance</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="body-all"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ── Tab 2: Interviews ───────────────────────────────── -->
+    <section id="tab-interviews" class="tab-content">
+        <div class="card">
+            <h3>Interview Management</h3>
+            <p class="hint">Record the outcome of each applicant's interview. Once all results are entered, proceed to the Offers tab.</p>
+            <div id="msg-interviews" class="message"></div>
             <div class="table-wrap">
-                <table id="tbl-offers">
+                <table id="tbl-interviews">
                     <thead>
                         <tr>
                             <th>RCPPI ID</th>
-                            <th>First Name</th>
-                            <th>Surname</th>
+                            <th>Name</th>
                             <th>Scheme</th>
+                            <th>Status</th>
                             <th>Score</th>
-                            <th>Acceptance</th>
+                            <th></th>
                         </tr>
                     </thead>
-                    <tbody id="body-offers"></tbody>
+                    <tbody id="body-interviews"></tbody>
                 </table>
             </div>
-        </section>
-
-        <!-- Acceptances -->
-        <section id="tab-acceptances" class="tab-content">
-            <h3>Acceptances by Scheme</h3>
-            <div id="msg-acceptances" class="message"></div>
-            <div id="acceptance-groups"></div>
-        </section>
-    </main>
-
-    <!-- Edit Modal -->
-    <div id="modal" class="modal hidden">
-        <div class="modal-box">
-            <h3>Edit Applicant</h3>
-            <div id="msg-edit" class="message"></div>
-            <form id="form-edit" onsubmit="submitEdit(event)">
-                <input type="hidden" id="edit-id">
-                <div class="form-grid">
-                    <label>First Name *<input type="text" id="edit-first_name" required></label>
-                    <label>Surname *<input type="text" id="edit-surname" required></label>
-                    <label>Date of Birth *<input type="date" id="edit-dob" required></label>
-                    <label>BST Scheme *
-                        <select id="edit-bst_scheme" required>
-                            <option value="">-- Select --</option>
-                            <option>Obstetrics and Gynaecology</option>
-                            <option>Histopathology</option>
-                            <option>General Internal Medicine</option>
-                            <option>Paediatrics</option>
-                        </select>
-                    </label>
-                    <label>Interview Score<input type="number" id="edit-interview_score" step="0.01" min="0" max="100"></label>
-                    <label>Place Offered
-                        <select id="edit-place_offered">
-                            <option value="">-- Not yet --</option>
-                            <option value="1">Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                    </label>
-                    <label>Acceptance
-                        <select id="edit-acceptance">
-                            <option value="">-- Pending --</option>
-                            <option value="accepted">Accepted</option>
-                            <option value="refused">Refused</option>
-                        </select>
-                    </label>
-                </div>
-                <div class="modal-actions">
-                    <button type="submit" class="btn-primary">Save Changes</button>
-                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
-                </div>
-            </form>
         </div>
-    </div>
+    </section>
 
-    <script src="BST_applications.js"></script>
+    <!-- ── Tab 3: Offers ──────────────────────────────────── -->
+    <section id="tab-offers" class="tab-content">
+        <div class="card">
+            <h3>Offer Management</h3>
+            <p class="hint">When all interview results are recorded, click below to automatically assign offers to the top 10 applicants per specialty (by interview score). This can be re-run if scores are updated.</p>
+            <button class="btn-primary" onclick="assignOffers()">Auto-Assign Top 10 Offers per Specialty</button>
+            <div id="msg-offers" class="message" style="margin-top:1rem"></div>
+        </div>
+        <div id="offers-results"></div>
+    </section>
+
+    <!-- ── Tab 4: Acceptances ─────────────────────────────── -->
+    <section id="tab-acceptances" class="tab-content">
+        <div class="card">
+            <h3>Acceptance Management</h3>
+            <p class="hint">Record whether each offered applicant has accepted or declined their place.</p>
+            <div id="msg-acceptances" class="message"></div>
+        </div>
+        <div id="acceptances-results"></div>
+    </section>
+
+</main>
+
+<!-- ── Interview Modal ──────────────────────────────────────── -->
+<div id="interview-modal" class="modal hidden">
+    <div class="modal-box">
+        <h3 id="interview-modal-title">Set Interview Result</h3>
+        <div id="msg-interview-modal" class="message"></div>
+        <form id="form-interview" onsubmit="submitInterview(event)">
+            <input type="hidden" id="interview-id">
+            <div class="radio-group">
+                <label class="radio-label">
+                    <input type="radio" name="interview_status" value="completed" onchange="toggleScoreInput(this)" required>
+                    Interview Completed
+                </label>
+                <div id="score-input-wrap" class="score-wrap hidden">
+                    <label>Interview Score (0–100)
+                        <input type="number" id="interview-score" step="0.01" min="0" max="100">
+                    </label>
+                </div>
+                <label class="radio-label">
+                    <input type="radio" name="interview_status" value="no_interview" onchange="toggleScoreInput(this)">
+                    No Interview Completed
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="interview_status" value="withdrawn" onchange="toggleScoreInput(this)">
+                    Withdrawn
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn-primary">Save</button>
+                <button type="button" class="btn-secondary" onclick="closeModal('interview-modal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="BST_applications.js"></script>
 </body>
 </html>

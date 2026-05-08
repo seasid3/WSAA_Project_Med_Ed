@@ -42,10 +42,30 @@ def create():
     new_id = dao.create(data)
     return jsonify({'rcppi_id': new_id}), 201
 
-@app.route('/applicants/<int:rcppi_id>', methods=['PUT'])
-def update(rcppi_id):
-    data = request.get_json()
-    rows = dao.update(rcppi_id, data or {})
+@app.route('/applicants/<int:rcppi_id>/interview', methods=['PUT'])
+def update_interview(rcppi_id):
+    data = request.get_json() or {}
+    status = data.get('interview_status')
+    if status not in ('completed', 'no_interview', 'withdrawn'):
+        abort(400, description="interview_status must be completed, no_interview, or withdrawn")
+    score = data.get('interview_score') if status == 'completed' else None
+    rows = dao.update_interview(rcppi_id, status, score)
+    if rows == 0:
+        abort(404)
+    return jsonify({'updated': rows})
+
+@app.route('/applicants/assign-offers', methods=['POST'])
+def assign_offers():
+    total = dao.assign_offers()
+    return jsonify({'offers_assigned': total})
+
+@app.route('/applicants/<int:rcppi_id>/acceptance', methods=['PUT'])
+def update_acceptance(rcppi_id):
+    data = request.get_json() or {}
+    acceptance = data.get('acceptance')
+    if acceptance not in ('accepted', 'refused'):
+        abort(400, description="acceptance must be 'accepted' or 'refused'")
+    rows = dao.update_acceptance(rcppi_id, acceptance)
     if rows == 0:
         abort(404)
     return jsonify({'updated': rows})
