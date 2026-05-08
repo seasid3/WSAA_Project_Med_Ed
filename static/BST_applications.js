@@ -1,6 +1,13 @@
 const API = '/applicants';
 let currentYear = 2026;
 
+const SCHEME_LIMITS = {
+    'Obstetrics and Gynaecology': 7,
+    'Histopathology':             4,
+    'General Internal Medicine':  15,
+    'Paediatrics':                8
+};
+
 // ── Year selector ─────────────────────────────────────────────
 async function initYearSelector() {
     const res = await fetch('/years');
@@ -277,7 +284,7 @@ async function submitInterview(e) {
 
 // ── Tab 3: Offers ─────────────────────────────────────────────
 async function assignOffers() {
-    if (!confirm('This will assign offers to the top 10 applicants per specialty based on interview score. Any existing offers will be recalculated. Continue?')) return;
+    if (!confirm('This will assign offers to the top-ranked applicants per specialty (Obs & Gynae: 7, Histopathology: 4, General Internal Medicine: 15, Paediatrics: 8) based on interview score. Any existing offers will be recalculated. Continue?')) return;
     const res = await fetch(`${API}/assign-offers?year=${currentYear}`, { method: 'POST' });
     const data = await res.json();
     showMsg('msg-offers', `Done — ${data.offers_assigned} offer(s) assigned.`, false);
@@ -299,26 +306,35 @@ async function loadOfferResults() {
             .filter(a => a.bst_scheme === scheme)
             .sort((a, b) => b.interview_score - a.interview_score);
         if (!group.length) return;
+        const limit = SCHEME_LIMITS[scheme];
         const offered = group.filter(a => a.place_offered === 1).length;
         const div = document.createElement('div');
         div.className = 'card scheme-group';
-        div.innerHTML = `<h4>${scheme} <span class="scheme-meta">${group.length} scored — ${offered} offered</span></h4>`
-            + buildRankedTable(group);
+        div.innerHTML = `<h4>${scheme} <span class="scheme-meta">${group.length} scored — ${offered} of ${limit} places offered</span></h4>`
+            + buildRankedTable(group, limit);
         container.appendChild(div);
     });
 }
 
-function buildRankedTable(applicants) {
-    const rows = applicants.map((a, i) => `
+function buildRankedTable(applicants, limit) {
+    let offerCount = 0;
+    const rows = applicants.map((a, i) => {
+        let offerBadge;
+        if (a.place_offered === 1) {
+            offerCount++;
+            offerBadge = `<span class="badge badge-green">Offer ${offerCount} of ${limit}</span>`;
+        } else {
+            offerBadge = '<span class="badge badge-grey">No Offer</span>';
+        }
+        return `
         <tr class="${a.place_offered === 1 ? 'row-offered' : 'row-no-offer'}">
             <td><strong>${i + 1}</strong></td>
             <td>${a.rcppi_id}</td>
             <td>${a.first_name} ${a.surname}</td>
             <td>${a.interview_score}</td>
-            <td>${a.place_offered === 1
-                ? '<span class="badge badge-green">Offered</span>'
-                : '<span class="badge badge-grey">No Offer</span>'}</td>
-        </tr>`).join('');
+            <td>${offerBadge}</td>
+        </tr>`;
+    }).join('');
     return `<table>
         <thead><tr><th>Rank</th><th>RCPPI ID</th><th>Name</th><th>Interview Score</th><th>Offer Status</th></tr></thead>
         <tbody>${rows}</tbody>
@@ -369,7 +385,15 @@ function buildAcceptanceTable(applicants) {
 async function downloadTraineeList() {
     const res = await fetch(`${API}/acceptances?year=${currentYear}`);
     const data = await res.json();
-    const trainees = data.filter(a => a.acceptance === 'accepted');
+    const accepted = data.filter(a => a.acceptance === 'accepted');
+
+    // Cap each specialty at its scheme limit
+    const trainees = [];
+    const schemes = ['Obstetrics and Gynaecology', 'Histopathology', 'General Internal Medicine', 'Paediatrics'];
+    schemes.forEach(scheme => {
+        const limit = SCHEME_LIMITS[scheme];
+        accepted.filter(a => a.bst_scheme === scheme).slice(0, limit).forEach(a => trainees.push(a));
+    });
 
     if (!trainees.length) {
         showMsg('msg-trainees', 'No accepted trainees to download yet.', true);
@@ -429,26 +453,27 @@ async function loadTrainees() {
     }
     const schemes = ['Obstetrics and Gynaecology', 'Histopathology', 'General Internal Medicine', 'Paediatrics'];
     schemes.forEach(scheme => {
-        const group = accepted.filter(a => a.bst_scheme === scheme);
+        const limit = SCHEME_LIMITS[scheme];
+        const group = accepted.filter(a => a.bst_scheme === scheme).slice(0, limit);
         if (!group.length) return;
         const div = document.createElement('div');
         div.className = 'card scheme-group';
-        div.innerHTML = `<h4>${scheme} <span class="scheme-meta">${group.length} trainee(s)</span></h4>` + buildTraineeTable(group);
+        div.innerHTML = `<h4>${scheme} <span class="scheme-meta">${group.length} of ${limit} trainee(s)</span></h4>` + buildTraineeTable(group, limit);
         container.appendChild(div);
     });
 }
 
-function buildTraineeTable(applicants) {
+function buildTraineeTable(applicants, limit) {
     const rows = applicants.map((a, i) => `
         <tr>
-            <td>${i + 1}</td>
+            <td>Trainee ${i + 1} of ${limit}</td>
             <td>${a.rcppi_id}</td>
             <td>${a.first_name} ${a.surname}</td>
             <td>${a.dob}</td>
             <td>${a.interview_score}</td>
         </tr>`).join('');
     return `<table>
-        <thead><tr><th>Rank</th><th>RCPPI ID</th><th>Name</th><th>DOB</th><th>Interview Score</th></tr></thead>
+        <thead><tr><th>Position</th><th>RCPPI ID</th><th>Name</th><th>DOB</th><th>Interview Score</th></tr></thead>
         <tbody>${rows}</tbody>
     </table>`;
 }

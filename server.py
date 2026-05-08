@@ -24,6 +24,10 @@ def index():
 def get_years():
     return jsonify(dao.get_years())
 
+@app.route('/scheme-limits', methods=['GET'])
+def scheme_limits():
+    return jsonify(dao.SCHEME_LIMITS)
+
 @app.route('/applicants', methods=['GET'])
 def get_all():
     return jsonify(dao.get_all(get_year()))

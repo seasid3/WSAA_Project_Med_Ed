@@ -1,12 +1,12 @@
 import sqlite3
 from db_config import DB_PATH
 
-SCHEMES = [
-    'Obstetrics and Gynaecology',
-    'Histopathology',
-    'General Internal Medicine',
-    'Paediatrics'
-]
+SCHEME_LIMITS = {
+    'Obstetrics and Gynaecology': 7,
+    'Histopathology':             4,
+    'General Internal Medicine':  15,
+    'Paediatrics':                8
+}
 
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
@@ -133,15 +133,15 @@ def assign_offers(year):
         "WHERE (interview_status = 'withdrawn' OR interview_status IS NULL) AND application_year = ?", (year,)
     )
     total = 0
-    for scheme in SCHEMES:
-        top10 = conn.execute(
+    for scheme, limit in SCHEME_LIMITS.items():
+        top_n = conn.execute(
             "SELECT rcppi_id FROM bst_applicants "
             "WHERE bst_scheme = ? AND application_year = ? AND interview_status = 'completed' "
             "AND interview_score IS NOT NULL "
-            "ORDER BY interview_score DESC LIMIT 10",
-            (scheme, year)
+            "ORDER BY interview_score DESC LIMIT ?",
+            (scheme, year, limit)
         ).fetchall()
-        ids = [r[0] for r in top10]
+        ids = [r[0] for r in top_n]
         if ids:
             placeholders = ','.join('?' * len(ids))
             conn.execute(
