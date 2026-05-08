@@ -1,5 +1,12 @@
 const API = '/applicants';
 
+// Restrict DOB field: applicants must be at least 21 years old
+(function setDobMax() {
+    const max = new Date();
+    max.setFullYear(max.getFullYear() - 21);
+    document.querySelector('input[name="dob"]').max = max.toISOString().split('T')[0];
+})();
+
 // ── Tab navigation ────────────────────────────────────────────
 function showTab(name, btn) {
     document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
