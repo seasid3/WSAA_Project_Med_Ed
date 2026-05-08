@@ -197,12 +197,21 @@ async function loadInterviews() {
             <td>${a.bst_scheme}</td>
             <td>${statusBadge(a.interview_status)}</td>
             <td>${a.interview_score ?? '—'}</td>
-            <td><button class="btn-edit" onclick="openInterviewModal(${a.rcppi_id}, '${a.first_name} ${a.surname}', '${a.interview_status || ''}', ${a.interview_score ?? 'null'})">Set Result</button></td>`;
+            <td><button class="btn-edit"
+                data-id="${a.rcppi_id}"
+                data-name="${(a.first_name + ' ' + a.surname).replace(/"/g, '&quot;')}"
+                data-status="${a.interview_status || ''}"
+                data-score="${a.interview_score ?? ''}"
+                onclick="openInterviewModal(this)">Set Result</button></td>`;
         tbody.appendChild(tr);
     });
 }
 
-function openInterviewModal(id, name, currentStatus, currentScore) {
+function openInterviewModal(btn) {
+    const id          = btn.dataset.id;
+    const name        = btn.dataset.name;
+    const currentStatus = btn.dataset.status;
+    const currentScore  = btn.dataset.score || null;
     document.getElementById('interview-id').value = id;
     document.getElementById('interview-modal-title').textContent =
         `Interview Result — ${name} (RCPPI ${id})`;
