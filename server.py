@@ -10,21 +10,31 @@ REQUIRED_FIELDS = ['first_name', 'surname', 'dob', 'bst_scheme']
 def validate_required(data):
     return [f for f in REQUIRED_FIELDS if not data.get(f)]
 
+def get_year():
+    try:
+        return int(request.args.get('year', 2026))
+    except (ValueError, TypeError):
+        abort(400, description="Invalid year parameter")
+
 @app.route('/')
 def index():
     return send_from_directory('static', 'BSTApplications.html')
 
+@app.route('/years', methods=['GET'])
+def get_years():
+    return jsonify(dao.get_years())
+
 @app.route('/applicants', methods=['GET'])
 def get_all():
-    return jsonify(dao.get_all())
+    return jsonify(dao.get_all(get_year()))
 
 @app.route('/applicants/offers', methods=['GET'])
 def get_offers():
-    return jsonify(dao.get_offers())
+    return jsonify(dao.get_offers(get_year()))
 
 @app.route('/applicants/acceptances', methods=['GET'])
 def get_acceptances():
-    return jsonify(dao.get_acceptances())
+    return jsonify(dao.get_acceptances(get_year()))
 
 @app.route('/applicants/<int:rcppi_id>', methods=['GET'])
 def get_one(rcppi_id):
@@ -39,7 +49,8 @@ def create():
     missing = validate_required(data or {})
     if missing:
         abort(400, description=f"Missing required fields: {', '.join(missing)}")
-    new_id = dao.create(data)
+    year = int(data.get('year', 2026))
+    new_id = dao.create(data, year)
     return jsonify({'rcppi_id': new_id}), 201
 
 @app.route('/applicants/<int:rcppi_id>/interview', methods=['PUT'])
@@ -56,7 +67,7 @@ def update_interview(rcppi_id):
 
 @app.route('/applicants/assign-offers', methods=['POST'])
 def assign_offers():
-    total = dao.assign_offers()
+    total = dao.assign_offers(get_year())
     return jsonify({'offers_assigned': total})
 
 @app.route('/applicants/<int:rcppi_id>/acceptance', methods=['PUT'])

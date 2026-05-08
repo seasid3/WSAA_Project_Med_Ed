@@ -1,6 +1,53 @@
 const API = '/applicants';
+let currentYear = 2026;
 
-// Restrict DOB field: applicants must be at least 21 years old
+// ── Year selector ─────────────────────────────────────────────
+async function initYearSelector() {
+    const res = await fetch('/years');
+    let years = await res.json();
+    if (!years.includes(2026)) years = [2026, ...years];
+    const sel = document.getElementById('year-select');
+    sel.innerHTML = years.map(y =>
+        `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`
+    ).join('');
+}
+
+function changeYear(year) {
+    currentYear = year;
+    // Reload whichever tab is active
+    const active = document.querySelector('.tab-content.active');
+    if (active.id === 'tab-interviews')   loadInterviews();
+    if (active.id === 'tab-offers')       loadOfferResults();
+    if (active.id === 'tab-acceptances')  loadAcceptances();
+    if (active.id === 'tab-applications') {
+        const section = document.getElementById('all-applicants-section');
+        if (!section.classList.contains('hidden')) loadAllApplicants();
+    }
+}
+
+function startNewYear() {
+    const input = prompt('Enter the new application year (e.g. 2027):');
+    if (!input) return;
+    const year = parseInt(input);
+    if (isNaN(year) || year < 2020 || year > 2100) {
+        alert('Please enter a valid year between 2020 and 2100.');
+        return;
+    }
+    const sel = document.getElementById('year-select');
+    if ([...sel.options].some(o => parseInt(o.value) === year)) {
+        sel.value = year;
+        changeYear(year);
+        return;
+    }
+    const opt = document.createElement('option');
+    opt.value = year;
+    opt.textContent = year;
+    sel.appendChild(opt);
+    sel.value = year;
+    changeYear(year);
+}
+
+// ── DOB restriction: must be 21+ ─────────────────────────────
 (function setDobMax() {
     const max = new Date();
     max.setFullYear(max.getFullYear() - 21);
@@ -61,7 +108,8 @@ async function submitAdd(e) {
         first_name: form.first_name.value.trim(),
         surname:    form.surname.value.trim(),
         dob:        form.dob.value,
-        bst_scheme: form.bst_scheme.value
+        bst_scheme: form.bst_scheme.value,
+        year:       currentYear
     };
     const res = await fetch(API, {
         method: 'POST',
@@ -90,7 +138,7 @@ function toggleAllApplicants(btn) {
 }
 
 async function loadAllApplicants() {
-    const res = await fetch(API);
+    const res = await fetch(`${API}?year=${currentYear}`);
     const data = await res.json();
     const tbody = document.getElementById('body-all');
     tbody.innerHTML = '';
@@ -132,7 +180,7 @@ async function deleteApplicant(id) {
 
 // ── Tab 2: Interviews ─────────────────────────────────────────
 async function loadInterviews() {
-    const res = await fetch(API);
+    const res = await fetch(`${API}?year=${currentYear}`);
     const data = await res.json();
     const tbody = document.getElementById('body-interviews');
     tbody.innerHTML = '';
@@ -220,14 +268,14 @@ async function submitInterview(e) {
 // ── Tab 3: Offers ─────────────────────────────────────────────
 async function assignOffers() {
     if (!confirm('This will assign offers to the top 10 applicants per specialty based on interview score. Any existing offers will be recalculated. Continue?')) return;
-    const res = await fetch(`${API}/assign-offers`, { method: 'POST' });
+    const res = await fetch(`${API}/assign-offers?year=${currentYear}`, { method: 'POST' });
     const data = await res.json();
     showMsg('msg-offers', `Done — ${data.offers_assigned} offer(s) assigned.`, false);
     loadOfferResults();
 }
 
 async function loadOfferResults() {
-    const res = await fetch(`${API}/offers`);
+    const res = await fetch(`${API}/offers?year=${currentYear}`);
     const data = await res.json();
     const container = document.getElementById('offers-results');
     container.innerHTML = '';
@@ -260,7 +308,7 @@ function buildRankedTable(applicants) {
 
 // ── Tab 4: Acceptances ────────────────────────────────────────
 async function loadAcceptances() {
-    const res = await fetch(`${API}/acceptances`);
+    const res = await fetch(`${API}/acceptances?year=${currentYear}`);
     const data = await res.json();
     const container = document.getElementById('acceptances-results');
     container.innerHTML = '';
@@ -300,7 +348,7 @@ function buildAcceptanceTable(applicants) {
 }
 
 async function downloadTraineeList() {
-    const res = await fetch(`${API}/acceptances`);
+    const res = await fetch(`${API}/acceptances?year=${currentYear}`);
     const data = await res.json();
     const trainees = data.filter(a => a.acceptance === 'accepted');
 
@@ -343,3 +391,6 @@ async function setAcceptance(id, acceptance) {
         showMsg('msg-acceptances', 'Error updating acceptance.', true);
     }
 }
+
+// ── Startup ───────────────────────────────────────────────────
+initYearSelector();

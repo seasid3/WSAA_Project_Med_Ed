@@ -22,33 +22,47 @@ def init_db():
             surname          TEXT NOT NULL,
             dob              TEXT NOT NULL,
             bst_scheme       TEXT NOT NULL,
+            application_year INTEGER NOT NULL DEFAULT 2026,
             interview_status TEXT DEFAULT NULL,
             interview_score  REAL DEFAULT NULL,
             place_offered    INTEGER DEFAULT NULL,
             acceptance       TEXT DEFAULT NULL
         )
     """)
-    try:
-        conn.execute("ALTER TABLE bst_applicants ADD COLUMN interview_status TEXT DEFAULT NULL")
-    except Exception:
-        pass
+    for col, definition in [
+        ('interview_status', 'TEXT DEFAULT NULL'),
+        ('application_year', 'INTEGER NOT NULL DEFAULT 2026'),
+    ]:
+        try:
+            conn.execute(f"ALTER TABLE bst_applicants ADD COLUMN {col} {definition}")
+        except Exception:
+            pass
     conn.commit()
 
-    # Seed AUTOINCREMENT so first real ID is 1001
     count = conn.execute("SELECT COUNT(*) FROM bst_applicants").fetchone()[0]
     if count == 0:
         conn.execute(
-            "INSERT INTO bst_applicants (rcppi_id, first_name, surname, dob, bst_scheme) "
-            "VALUES (1000, '_', '_', '2000-01-01', 'Paediatrics')"
+            "INSERT INTO bst_applicants (rcppi_id, first_name, surname, dob, bst_scheme, application_year) "
+            "VALUES (1000, '_', '_', '2000-01-01', 'Paediatrics', 2026)"
         )
         conn.execute("DELETE FROM bst_applicants WHERE rcppi_id = 1000")
         conn.commit()
     conn.close()
 
-def get_all():
+def get_years():
     conn = get_connection()
     rows = conn.execute(
-        "SELECT * FROM bst_applicants ORDER BY interview_score DESC, rcppi_id ASC"
+        "SELECT DISTINCT application_year FROM bst_applicants ORDER BY application_year"
+    ).fetchall()
+    conn.close()
+    years = [r[0] for r in rows]
+    return years if years else [2026]
+
+def get_all(year):
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM bst_applicants WHERE application_year = ? "
+        "ORDER BY interview_score DESC, rcppi_id ASC", (year,)
     ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
@@ -61,29 +75,30 @@ def get_by_id(rcppi_id):
     conn.close()
     return dict(row) if row else None
 
-def get_offers():
+def get_offers(year):
     conn = get_connection()
     rows = conn.execute(
-        "SELECT * FROM bst_applicants WHERE place_offered = 1 "
-        "ORDER BY bst_scheme, interview_score DESC"
+        "SELECT * FROM bst_applicants WHERE place_offered = 1 AND application_year = ? "
+        "ORDER BY bst_scheme, interview_score DESC", (year,)
     ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
-def get_acceptances():
+def get_acceptances(year):
     conn = get_connection()
     rows = conn.execute(
-        "SELECT * FROM bst_applicants WHERE place_offered = 1 "
-        "ORDER BY bst_scheme, interview_score DESC"
+        "SELECT * FROM bst_applicants WHERE place_offered = 1 AND application_year = ? "
+        "ORDER BY bst_scheme, interview_score DESC", (year,)
     ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
-def create(data):
+def create(data, year):
     conn = get_connection()
     cursor = conn.execute(
-        "INSERT INTO bst_applicants (first_name, surname, dob, bst_scheme) VALUES (?, ?, ?, ?)",
-        (data['first_name'], data['surname'], data['dob'], data['bst_scheme'])
+        "INSERT INTO bst_applicants (first_name, surname, dob, bst_scheme, application_year) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (data['first_name'], data['surname'], data['dob'], data['bst_scheme'], year)
     )
     conn.commit()
     new_id = cursor.lastrowid
@@ -107,31 +122,30 @@ def update_interview(rcppi_id, status, score=None):
     conn.close()
     return rows
 
-def assign_offers():
+def assign_offers(year):
     conn = get_connection()
     conn.execute(
         "UPDATE bst_applicants SET place_offered = 0, acceptance = NULL "
-        "WHERE interview_status IN ('completed', 'no_interview')"
+        "WHERE interview_status IN ('completed', 'no_interview') AND application_year = ?", (year,)
     )
     conn.execute(
         "UPDATE bst_applicants SET place_offered = NULL "
-        "WHERE interview_status = 'withdrawn' OR interview_status IS NULL"
+        "WHERE (interview_status = 'withdrawn' OR interview_status IS NULL) AND application_year = ?", (year,)
     )
     total = 0
     for scheme in SCHEMES:
         top10 = conn.execute(
             "SELECT rcppi_id FROM bst_applicants "
-            "WHERE bst_scheme = ? AND interview_status = 'completed' "
+            "WHERE bst_scheme = ? AND application_year = ? AND interview_status = 'completed' "
             "AND interview_score IS NOT NULL "
             "ORDER BY interview_score DESC LIMIT 10",
-            (scheme,)
+            (scheme, year)
         ).fetchall()
         ids = [r[0] for r in top10]
         if ids:
             placeholders = ','.join('?' * len(ids))
             conn.execute(
-                f"UPDATE bst_applicants SET place_offered = 1 WHERE rcppi_id IN ({placeholders})",
-                ids
+                f"UPDATE bst_applicants SET place_offered = 1 WHERE rcppi_id IN ({placeholders})", ids
             )
             total += len(ids)
     conn.commit()
