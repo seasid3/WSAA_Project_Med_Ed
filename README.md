@@ -297,6 +297,14 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ---
 
+#### Prompt 20 — Exclude Waiting List Applicants from Acceptances Tab
+> *"When you go to confirm accepted or not, only the applicants who were offered a place should have the option to accept or not. The others on the waiting list should not be in this tab."*
+
+**Author designed:** The business rule that waiting list candidates should not be presented for acceptance decisions — only those within the official offer limit for their specialty should appear in the Acceptances tab.  
+**AI helped with:** Updating `loadAcceptances()` in the JavaScript to sort offered applicants by score and slice to the scheme limit per specialty, excluding any waiting list applicants from the tab entirely.
+
+---
+
 #### Prompt 19 — Rename Offers Button
 > *"In the Offer management tab, rename the button to 'Auto-Assign Offers per Specialty' instead of saying top 10 as this is no longer relevant"*
 
