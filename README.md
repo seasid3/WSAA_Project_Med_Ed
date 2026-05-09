@@ -297,6 +297,14 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ---
 
+#### Prompt 18 — Waiting List Status for Applicants Beyond Scheme Limit
+> *"Offers are being extended to more than the number of places available. e.g. 6 offers made for 4 places. Those who are in places 5 and 6 need a status of waiting list instead of offer 5 of 4 etc."*
+
+**Author designed:** The business rule that applicants ranked beyond the available places should be designated as Waiting List rather than offered a place — reflecting how RCPI manages overflow candidates when not all offered applicants accept.  
+**AI helped with:** Diagnosing the two causes of the issue: (1) existing database records from before per-specialty limits were enforced, and (2) the cascade offer function not checking whether the scheme was already at capacity before assigning a new offer. Fixed the cascade function in the DAO to count active (non-refused) offers and stop cascading if the limit is already met. Updated the Offers tab display to show an amber "Waiting List" badge for any applicant with `place_offered = 1` ranked beyond the scheme limit, and corrected the scheme header to count only active offers.
+
+---
+
 ## Technologies Used
 
 - **Python 3.11** / **Flask** — server and REST API
