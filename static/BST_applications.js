@@ -27,8 +27,7 @@ function changeYear(year) {
     if (active.id === 'tab-offers')       loadOfferResults();
     if (active.id === 'tab-acceptances')  loadAcceptances();
     if (active.id === 'tab-applications') {
-        const section = document.getElementById('all-applicants-section');
-        if (!section.classList.contains('hidden')) loadAllApplicants();
+        loadAllApplicants();
     }
 }
 
@@ -71,10 +70,7 @@ function showTab(name, btn) {
     if (name === 'offers')       loadOfferResults();
     if (name === 'acceptances')  loadAcceptances();
     if (name === 'trainees')     loadTrainees();
-    if (name === 'applications') {
-        const section = document.getElementById('all-applicants-section');
-        if (!section.classList.contains('hidden')) loadAllApplicants();
-    }
+    if (name === 'applications') loadAllApplicants();
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -142,12 +138,6 @@ async function submitAdd(e) {
     }
 }
 
-function toggleAllApplicants(btn) {
-    const section = document.getElementById('all-applicants-section');
-    const hidden = section.classList.toggle('hidden');
-    btn.textContent = hidden ? 'View All Applicants ▼' : 'Hide Applicants ▲';
-    if (!hidden) loadAllApplicants();
-}
 
 let allApplicantsData = [];
 let dashboardSort = { col: null, dir: 1 };
@@ -490,8 +480,7 @@ async function setAcceptance(id, acceptance) {
         }
         showMsg('msg-acceptances', msg, false);
         loadAcceptances();
-        const section = document.getElementById('all-applicants-section');
-        if (!section.classList.contains('hidden')) loadAllApplicants();
+        loadAllApplicants();
     } else {
         showMsg('msg-acceptances', 'Error updating acceptance.', true);
     }
@@ -537,3 +526,4 @@ function buildTraineeTable(applicants, limit) {
 
 // ── Startup ───────────────────────────────────────────────────
 initYearSelector();
+loadAllApplicants();
