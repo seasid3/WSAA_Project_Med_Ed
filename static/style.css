@@ -142,6 +142,8 @@ input:focus, select:focus { outline: 2px solid var(--teal); border-color: var(--
 table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 thead { background: var(--navy); color: var(--white); }
 th { padding: 0.65rem 0.9rem; text-align: left; font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable:hover { background: rgba(255,255,255,0.15); }
 td { padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
 tbody tr:hover { background: var(--light-teal); }
 tbody tr:last-child td { border-bottom: none; }

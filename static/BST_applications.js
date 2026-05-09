@@ -149,26 +149,66 @@ function toggleAllApplicants(btn) {
     if (!hidden) loadAllApplicants();
 }
 
+let allApplicantsData = [];
+let dashboardSort = { col: null, dir: 1 };
+
+function formatDob(dob) {
+    if (!dob) return '—';
+    const [y, m, d] = dob.split('-');
+    return `${d}-${m}-${y}`;
+}
+
 async function loadAllApplicants() {
     const res = await fetch(`${API}?year=${currentYear}`);
-    const data = await res.json();
+    allApplicantsData = await res.json();
+    renderAllApplicants();
+}
+
+function sortDashboard(col) {
+    if (dashboardSort.col === col) {
+        dashboardSort.dir *= -1;
+    } else {
+        dashboardSort.col = col;
+        dashboardSort.dir = 1;
+    }
+    document.querySelectorAll('th.sortable').forEach(th => {
+        th.textContent = th.textContent.replace(' ▲', '').replace(' ▼', '');
+    });
+    const th = document.getElementById('th-' + col);
+    if (th) th.textContent += dashboardSort.dir === 1 ? ' ▲' : ' ▼';
+    renderAllApplicants();
+}
+
+function renderAllApplicants() {
     const tbody = document.getElementById('body-all');
     tbody.innerHTML = '';
-    if (!data.length) {
-        tbody.innerHTML = '<tr><td colspan="10" class="empty">No applicants yet.</td></tr>';
+    if (!allApplicantsData.length) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty">No applicants yet.</td></tr>';
         return;
     }
-    let rank = 1;
+    let data = [...allApplicantsData];
+    if (dashboardSort.col) {
+        data.sort((a, b) => {
+            let av = a[dashboardSort.col] ?? '';
+            let bv = b[dashboardSort.col] ?? '';
+            if (typeof av === 'number' || typeof bv === 'number') {
+                av = av === '' ? -Infinity : Number(av);
+                bv = bv === '' ? -Infinity : Number(bv);
+            } else {
+                av = String(av).toLowerCase();
+                bv = String(bv).toLowerCase();
+            }
+            return av < bv ? -dashboardSort.dir : av > bv ? dashboardSort.dir : 0;
+        });
+    }
     data.forEach(a => {
         const tr = document.createElement('tr');
         if (a.interview_status === 'withdrawn') tr.classList.add('row-withdrawn');
-        const rankDisplay = a.interview_score !== null ? rank++ : '—';
         tr.innerHTML = `
-            <td>${rankDisplay}</td>
             <td>${a.rcppi_id}</td>
             <td>${a.first_name}</td>
             <td>${a.surname}</td>
-            <td>${a.dob}</td>
+            <td>${formatDob(a.dob)}</td>
             <td>${a.bst_scheme}</td>
             <td>${statusBadge(a.interview_status)}</td>
             <td>${a.interview_score ?? '—'}</td>
