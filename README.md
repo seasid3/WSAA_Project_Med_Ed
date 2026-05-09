@@ -297,6 +297,14 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ---
 
+#### Prompt 24 — Sort Indicator Arrows on Dashboard Column Headers
+> *"Put an arrow beside RCPPI ID, Scheme, Offered and Accepted column headers in the applicant dashboard so the user can see this is possible."*
+
+**Author designed:** Identified that sortable columns needed a visible affordance so administrators would know they could click to sort without being told.  
+**AI helped with:** Adding a ↕ symbol to each sortable column header by default, replaced by ▲ or ▼ on the active sort column, with inactive columns reverting to ↕.
+
+---
+
 #### Prompt 23 — Applicant Dashboard Improvements
 > *"Put in the option to order the columns of the applicant dashboard by RCPPI ID, Scheme, Offered, or Acceptance. Remove rank from this table as this is not correct here. Also, make the DOB in dd-mm-yyyy format."*
 
