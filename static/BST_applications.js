@@ -356,9 +356,14 @@ async function loadAcceptances() {
         return;
     }
 
-    const schemes = [...new Set(data.map(a => a.bst_scheme))];
+    const schemes = ['Obstetrics and Gynaecology', 'Histopathology', 'General Internal Medicine', 'Paediatrics'];
     schemes.forEach(scheme => {
-        const group = data.filter(a => a.bst_scheme === scheme);
+        const limit = SCHEME_LIMITS[scheme];
+        const group = data
+            .filter(a => a.bst_scheme === scheme)
+            .sort((a, b) => b.interview_score - a.interview_score)
+            .slice(0, limit);
+        if (!group.length) return;
         const div = document.createElement('div');
         div.className = 'card scheme-group';
         div.innerHTML = `<h4>${scheme}</h4>` + buildAcceptanceTable(group);
