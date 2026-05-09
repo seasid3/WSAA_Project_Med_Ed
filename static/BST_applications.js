@@ -360,7 +360,7 @@ async function loadAcceptances() {
     schemes.forEach(scheme => {
         const limit = SCHEME_LIMITS[scheme];
         const group = data
-            .filter(a => a.bst_scheme === scheme)
+            .filter(a => a.bst_scheme === scheme && a.acceptance !== 'refused')
             .sort((a, b) => b.interview_score - a.interview_score)
             .slice(0, limit);
         if (!group.length) return;
