@@ -297,6 +297,29 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ---
 
+#### Prompt 23 — Applicant Dashboard Improvements
+> *"Put in the option to order the columns of the applicant dashboard by RCPPI ID, Scheme, Offered, or Acceptance. Remove rank from this table as this is not correct here. Also, make the DOB in dd-mm-yyyy format."*
+
+**Author designed:** The decision to make the dashboard sortable to allow administrators to filter and review applicants by different criteria. Identified that the Rank column was misleading in an overview context (rank is only meaningful within a specialty, not across all applicants). Specified the dd-mm-yyyy date format as more readable for Irish administrative users.  
+**AI helped with:** Removing the Rank column, implementing client-side column sorting with ascending/descending toggle and ▲/▼ indicators on the RCPPI ID, Scheme, Offered, and Acceptance columns, and reformatting the DOB display from ISO (yyyy-mm-dd) to dd-mm-yyyy.
+
+---
+
+#### Prompt 22 — Applicant Dashboard Heading
+> *"Instead of the Applications tab heading of 'All Applicants' replace 'All Applicants' with 'Applicant Dashboard'."*
+
+**Author designed:** Chose the name "Applicant Dashboard" to better reflect that this table is an overview of all applicants and their status across the full workflow, not just a list.  
+**AI helped with:** Updating the heading in the HTML.
+
+---
+
+#### Prompt 21 — All Applicants Table Not Updating with Acceptance Status
+> *"The all applicants list on the first Applications tab is not updating with acceptance status after the accepted or not accepted process is complete."*
+
+**AI helped with:** Diagnosing that the All Applicants table was not being refreshed when switching back to the Applications tab or after recording an acceptance. Fixed by adding a reload call in both the tab-switch handler and the acceptance submission function.
+
+---
+
 #### Prompt 20 — Exclude Waiting List Applicants from Acceptances Tab
 > *"When you go to confirm accepted or not, only the applicants who were offered a place should have the option to accept or not. The others on the waiting list should not be in this tab."*
 
