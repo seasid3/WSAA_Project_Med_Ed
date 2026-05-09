@@ -172,6 +172,17 @@ def cascade_offer(rcppi_id):
         conn.close()
         return None
     scheme, year = applicant['bst_scheme'], applicant['application_year']
+    limit = SCHEME_LIMITS.get(scheme)
+    if limit is not None:
+        active_offers = conn.execute(
+            "SELECT COUNT(*) FROM bst_applicants "
+            "WHERE bst_scheme = ? AND application_year = ? AND place_offered = 1 "
+            "AND (acceptance IS NULL OR acceptance = 'accepted')",
+            (scheme, year)
+        ).fetchone()[0]
+        if active_offers >= limit:
+            conn.close()
+            return None
     next_one = conn.execute(
         "SELECT rcppi_id, first_name, surname FROM bst_applicants "
         "WHERE bst_scheme = ? AND application_year = ? AND interview_status = 'completed' "

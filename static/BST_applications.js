@@ -307,10 +307,10 @@ async function loadOfferResults() {
             .sort((a, b) => b.interview_score - a.interview_score);
         if (!group.length) return;
         const limit = SCHEME_LIMITS[scheme];
-        const offered = group.filter(a => a.place_offered === 1).length;
+        const activeOffers = group.filter(a => a.place_offered === 1 && a.acceptance !== 'refused').length;
         const div = document.createElement('div');
         div.className = 'card scheme-group';
-        div.innerHTML = `<h4>${scheme} <span class="scheme-meta">${group.length} scored — ${offered} of ${limit} places offered</span></h4>`
+        div.innerHTML = `<h4>${scheme} <span class="scheme-meta">${group.length} scored — ${activeOffers} of ${limit} places offered</span></h4>`
             + buildRankedTable(group, limit);
         container.appendChild(div);
     });
@@ -322,7 +322,11 @@ function buildRankedTable(applicants, limit) {
         let offerBadge;
         if (a.place_offered === 1) {
             offerCount++;
-            offerBadge = `<span class="badge badge-green">Offer ${offerCount} of ${limit}</span>`;
+            if (offerCount <= limit) {
+                offerBadge = `<span class="badge badge-green">Offer ${offerCount} of ${limit}</span>`;
+            } else {
+                offerBadge = '<span class="badge badge-orange">Waiting List</span>';
+            }
         } else {
             offerBadge = '<span class="badge badge-grey">No Offer</span>';
         }
