@@ -7,9 +7,18 @@ This repository contains my project for the Web Services and Applications (WSAA)
 
 ## Application: RCPI BST Applicant Management System
 
-I work in the Royal College of Physicians of Ireland (RCPI). Each year the College receives applications from doctors who have completed their medical degree and intern year and wish to begin Basic Specialist Training (BST) in one of four specialties: Obstetrics and Gynaecology, Histopathology, General Internal Medicine, and Paediatrics.
+I work in the Royal College of Physicians of Ireland (RCPI). Each year the College receives applications from doctors who have completed their medical degree and intern year and wish to begin their postgraduate medical education (med_ed) Basic Specialist Training (BST) in one of four specialties: Obstetrics and Gynaecology, Histopathology, General Internal Medicine, and Paediatrics.
 
 This web application allows College administrators to manage those applicants — recording details, logging interview scores, marking offers, and tracking acceptances — through a clean browser interface backed by a REST API.
+
+The following files are required to create and design this application:
+
+- The Flask server (server.py) hosts the application and set up REST API endpoints, 
+- The HTML webpage (BSTApplications.html) allows the user to interact with the server and therefore, the database, e.g. by clicking buttons to add applicants, record interview scores, assign offers or record acceptances,
+- A JavaScript file handles these interactions (BST_applications.js), sending AJAX requests to the server without refreshing the page. The server passes these requests to the Data Access Object (DAO),
+- The DAO (BST_DAO.py), runs the SQLite query on behalf of the user, and performs the appropriate CRUD operations on the SQLite database. 
+- The configuration file (db_config.py) handles the database file path separately, keeping database setup details separate from the application, 
+- CSS is used to style the webpage (using RCPI branding).
 
 ### Live Application
 
@@ -22,7 +31,7 @@ This web application allows College administrators to manage those applicants �
 ```
 WSAA_Project_Med_Ed/
 ├── server.py               # Flask app — all API endpoints
-├── BST_DAO.py              # Database access layer (parameterised queries, no SQL injection)
+├── BST_DAO.py              # Database access layer (parameterised queries, no SQL injection). 
 ├── db_config.py            # Database file path config
 ├── schema.sql              # SQLite DDL — applied automatically on first run
 ├── requirements.txt        # Python dependencies
