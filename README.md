@@ -297,6 +297,14 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ---
 
+#### Prompt 25 — Always Show Applicant Dashboard
+> *"Remove the View All Applicants / Hide Applicants button from the Applicant Dashboard. It should always be visible."*
+
+**Author designed:** Decided the toggle button added unnecessary friction — administrators need to see the full applicant list as their default view, not have to click to reveal it.  
+**AI helped with:** Removing the toggle button and hidden state from the HTML, removing the toggle function from JavaScript, and loading the dashboard automatically on page open and on every return to the Applications tab.
+
+---
+
 #### Prompt 24 — Sort Indicator Arrows on Dashboard Column Headers
 > *"Put an arrow beside RCPPI ID, Scheme, Offered and Accepted column headers in the applicant dashboard so the user can see this is possible."*
 
