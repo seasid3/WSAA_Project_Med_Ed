@@ -71,6 +71,10 @@ function showTab(name, btn) {
     if (name === 'offers')       loadOfferResults();
     if (name === 'acceptances')  loadAcceptances();
     if (name === 'trainees')     loadTrainees();
+    if (name === 'applications') {
+        const section = document.getElementById('all-applicants-section');
+        if (!section.classList.contains('hidden')) loadAllApplicants();
+    }
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -444,6 +448,8 @@ async function setAcceptance(id, acceptance) {
         }
         showMsg('msg-acceptances', msg, false);
         loadAcceptances();
+        const section = document.getElementById('all-applicants-section');
+        if (!section.classList.contains('hidden')) loadAllApplicants();
     } else {
         showMsg('msg-acceptances', 'Error updating acceptance.', true);
     }
