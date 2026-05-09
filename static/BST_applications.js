@@ -171,11 +171,13 @@ function sortDashboard(col) {
         dashboardSort.col = col;
         dashboardSort.dir = 1;
     }
+    const labels = { rcppi_id: 'RCPPI ID', bst_scheme: 'Scheme', place_offered: 'Offered', acceptance: 'Acceptance' };
     document.querySelectorAll('th.sortable').forEach(th => {
-        th.textContent = th.textContent.replace(' ▲', '').replace(' ▼', '');
+        const key = th.id.replace('th-', '');
+        th.textContent = (labels[key] || key) + ' ↕';
     });
     const th = document.getElementById('th-' + col);
-    if (th) th.textContent += dashboardSort.dir === 1 ? ' ▲' : ' ▼';
+    if (th) th.textContent = labels[col] + (dashboardSort.dir === 1 ? ' ▲' : ' ▼');
     renderAllApplicants();
 }
 
