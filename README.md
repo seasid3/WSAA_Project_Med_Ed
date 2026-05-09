@@ -297,6 +297,14 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ---
 
+#### Prompt 19 — Rename Offers Button
+> *"In the Offer management tab, rename the button to 'Auto-Assign Offers per Specialty' instead of saying top 10 as this is no longer relevant"*
+
+**Author designed:** Identified that the button label was outdated following the move to per-specialty limits.  
+**AI helped with:** Updating the button text in the HTML.
+
+---
+
 #### Prompt 18 — Waiting List Status for Applicants Beyond Scheme Limit
 > *"Offers are being extended to more than the number of places available. e.g. 6 offers made for 4 places. Those who are in places 5 and 6 need a status of waiting list instead of offer 5 of 4 etc."*
 
