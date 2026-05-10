@@ -1,13 +1,6 @@
 import sqlite3
 from db_config import DB_PATH
 
-SCHEME_LIMITS = {
-    'Obstetrics and Gynaecology': 7,
-    'Histopathology':             4,
-    'General Internal Medicine':  15,
-    'Paediatrics':                8
-}
-
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -15,6 +8,8 @@ def get_connection():
 
 def init_db():
     conn = get_connection()
+
+    # Create applicants table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS bst_applicants (
             rcppi_id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,6 +24,8 @@ def init_db():
             acceptance       TEXT DEFAULT NULL
         )
     """)
+
+    # Add any missing columns for older databases
     for col, definition in [
         ('interview_status', 'TEXT DEFAULT NULL'),
         ('application_year', 'INTEGER NOT NULL DEFAULT 2026'),
@@ -37,8 +34,8 @@ def init_db():
             conn.execute(f"ALTER TABLE bst_applicants ADD COLUMN {col} {definition}")
         except Exception:
             pass
-    conn.commit()
 
+    # Seed AUTOINCREMENT so IDs start at 1001
     count = conn.execute("SELECT COUNT(*) FROM bst_applicants").fetchone()[0]
     if count == 0:
         conn.execute(
@@ -46,8 +43,60 @@ def init_db():
             "VALUES (1000, '_', '_', '2000-01-01', 'Paediatrics', 2026)"
         )
         conn.execute("DELETE FROM bst_applicants WHERE rcppi_id = 1000")
-        conn.commit()
+
+    # Create schemes table
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS bst_schemes (
+            scheme_name TEXT PRIMARY KEY,
+            max_places  INTEGER NOT NULL
+        )
+    """)
+
+    # Seed schemes table if empty
+    scheme_count = conn.execute("SELECT COUNT(*) FROM bst_schemes").fetchone()[0]
+    if scheme_count == 0:
+        default_schemes = [
+            ('Obstetrics and Gynaecology', 7),
+            ('Histopathology',             4),
+            ('General Internal Medicine',  15),
+            ('Paediatrics',                8),
+        ]
+        conn.executemany(
+            "INSERT INTO bst_schemes (scheme_name, max_places) VALUES (?, ?)",
+            default_schemes
+        )
+
+    conn.commit()
     conn.close()
+
+# ── Schemes ───────────────────────────────────────────────────
+
+def get_schemes():
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT scheme_name, max_places FROM bst_schemes ORDER BY scheme_name"
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def get_scheme_limits():
+    conn = get_connection()
+    rows = conn.execute("SELECT scheme_name, max_places FROM bst_schemes").fetchall()
+    conn.close()
+    return {r['scheme_name']: r['max_places'] for r in rows}
+
+def update_scheme(scheme_name, max_places):
+    conn = get_connection()
+    cursor = conn.execute(
+        "UPDATE bst_schemes SET max_places = ? WHERE scheme_name = ?",
+        (max_places, scheme_name)
+    )
+    conn.commit()
+    rows = cursor.rowcount
+    conn.close()
+    return rows
+
+# ── Applicants ────────────────────────────────────────────────
 
 def get_years():
     conn = get_connection()
@@ -124,6 +173,8 @@ def update_interview(rcppi_id, status, score=None):
 
 def assign_offers(year):
     conn = get_connection()
+    scheme_limits = {r['scheme_name']: r['max_places'] for r in
+                     conn.execute("SELECT scheme_name, max_places FROM bst_schemes").fetchall()}
     conn.execute(
         "UPDATE bst_applicants SET place_offered = 0, acceptance = NULL "
         "WHERE interview_status IN ('completed', 'no_interview') AND application_year = ?", (year,)
@@ -133,7 +184,7 @@ def assign_offers(year):
         "WHERE (interview_status = 'withdrawn' OR interview_status IS NULL) AND application_year = ?", (year,)
     )
     total = 0
-    for scheme, limit in SCHEME_LIMITS.items():
+    for scheme, limit in scheme_limits.items():
         top_n = conn.execute(
             "SELECT rcppi_id FROM bst_applicants "
             "WHERE bst_scheme = ? AND application_year = ? AND interview_status = 'completed' "
@@ -172,15 +223,17 @@ def cascade_offer(rcppi_id):
         conn.close()
         return None
     scheme, year = applicant['bst_scheme'], applicant['application_year']
-    limit = SCHEME_LIMITS.get(scheme)
-    if limit is not None:
+    row = conn.execute(
+        "SELECT max_places FROM bst_schemes WHERE scheme_name = ?", (scheme,)
+    ).fetchone()
+    if row:
         active_offers = conn.execute(
             "SELECT COUNT(*) FROM bst_applicants "
             "WHERE bst_scheme = ? AND application_year = ? AND place_offered = 1 "
             "AND (acceptance IS NULL OR acceptance = 'accepted')",
             (scheme, year)
         ).fetchone()[0]
-        if active_offers >= limit:
+        if active_offers >= row['max_places']:
             conn.close()
             return None
     next_one = conn.execute(

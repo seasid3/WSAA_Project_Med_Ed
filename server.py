@@ -24,9 +24,24 @@ def index():
 def get_years():
     return jsonify(dao.get_years())
 
+@app.route('/schemes', methods=['GET'])
+def get_schemes():
+    return jsonify(dao.get_schemes())
+
+@app.route('/schemes/<scheme_name>', methods=['PUT'])
+def update_scheme(scheme_name):
+    data = request.get_json() or {}
+    max_places = data.get('max_places')
+    if max_places is None or not isinstance(max_places, int) or max_places < 1:
+        abort(400, description="max_places must be a positive integer")
+    rows = dao.update_scheme(scheme_name, max_places)
+    if rows == 0:
+        abort(404)
+    return jsonify({'updated': rows})
+
 @app.route('/scheme-limits', methods=['GET'])
 def scheme_limits():
-    return jsonify(dao.SCHEME_LIMITS)
+    return jsonify(dao.get_scheme_limits())
 
 @app.route('/applicants', methods=['GET'])
 def get_all():

@@ -1,12 +1,7 @@
 const API = '/applicants';
 let currentYear = 2026;
 
-const SCHEME_LIMITS = {
-    'Obstetrics and Gynaecology': 7,
-    'Histopathology':             4,
-    'General Internal Medicine':  15,
-    'Paediatrics':                8
-};
+let SCHEME_LIMITS = {};
 
 // ── Year selector ─────────────────────────────────────────────
 async function initYearSelector() {
@@ -525,5 +520,11 @@ function buildTraineeTable(applicants, limit) {
 }
 
 // ── Startup ───────────────────────────────────────────────────
-initYearSelector();
-loadAllApplicants();
+async function init() {
+    const res = await fetch('/schemes');
+    const schemes = await res.json();
+    schemes.forEach(s => { SCHEME_LIMITS[s.scheme_name] = s.max_places; });
+    await initYearSelector();
+    loadAllApplicants();
+}
+init();
