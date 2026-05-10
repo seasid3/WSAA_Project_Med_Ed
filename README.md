@@ -56,7 +56,9 @@ WSAA_Project_Med_Ed/
 | GET | `/years` | All years with applicant data |
 | POST | `/applicants` | Create new applicant |
 | PUT | `/applicants/<id>/interview` | Record interview outcome |
-| GET | `/scheme-limits` | Returns the maximum trainee places per specialty |
+| GET | `/schemes` | List all BST schemes and their trainee place limits |
+| PUT | `/schemes/<name>` | Update the trainee place limit for a scheme |
+| GET | `/scheme-limits` | Returns scheme limits as a name:limit dictionary |
 | POST | `/applicants/assign-offers?year=YYYY` | Auto-assign offers per specialty up to the scheme limit |
 | PUT | `/applicants/<id>/acceptance` | Record acceptance or refusal (triggers cascade offer if refused) |
 | DELETE | `/applicants/<id>` | Delete applicant |
@@ -65,7 +67,9 @@ WSAA_Project_Med_Ed/
 
 ## Database
 
-SQLite — single file (`rcppi_bst.db`), created automatically on first run. Single table: `bst_applicants`.
+SQLite — single file (`rcppi_bst.db`), created automatically on first run. Two tables: `bst_applicants` and `bst_schemes`.
+
+### Table: `bst_applicants`
 
 | Column | Type | Notes |
 |--------|------|-------|
@@ -79,6 +83,17 @@ SQLite — single file (`rcppi_bst.db`), created automatically on first run. Sin
 | `interview_score` | REAL | Recorded after interview |
 | `place_offered` | INTEGER | 1 = yes, 0 = no, NULL = not yet decided |
 | `acceptance` | TEXT | accepted / refused |
+
+### Table: `bst_schemes`
+
+Stores the four BST specialties and their maximum trainee place limits. Seeded automatically on first run. Limits can be updated via the API without touching code.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `scheme_name` | TEXT PRIMARY KEY | Name of the BST specialty |
+| `max_places` | INTEGER | Maximum number of trainees for this scheme |
+
+**Relationship:** `bst_applicants.bst_scheme` references `bst_schemes.scheme_name` — every applicant belongs to one of the four schemes defined in this table.
 
 ### Why SQLite and not MySQL
 
@@ -303,6 +318,16 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 **Author designed:** The decision to move the button closer to the last field the user fills in (BST Scheme) to improve form flow — the natural next action after selecting a scheme is to submit.  
 **AI helped with:** Repositioning the button within the CSS grid using a spacer element, applying `width: fit-content` to size the button to its text, and using `justify-self: end` to right-align it under the dropdown.
+
+---
+
+#### Prompt 26 — Add Second Database Table (bst_schemes)
+> *"Add bst schemes table"*
+
+Following a review of the assignment specification, a second database table was identified as an opportunity to demonstrate a more complete data model. The `bst_schemes` table stores the four BST specialties and their trainee place limits, replacing the previously hardcoded values in the DAO.
+
+**Author designed:** The decision to use scheme limits as the basis for the second table, as they already existed in the application logic and moving them to the database makes them configurable without code changes — reflecting real-world practice where intake numbers may change year to year.  
+**AI helped with:** Creating the `bst_schemes` table in the DAO, seeding it on first run, adding `get_schemes()`, `get_scheme_limits()` and `update_scheme()` DAO functions, adding `GET /schemes` and `PUT /schemes/<name>` API endpoints, updating `assign_offers()` and `cascade_offer()` to read limits from the database, and updating the JavaScript to fetch scheme limits from the API on startup instead of using a hardcoded constant.
 
 ---
 
