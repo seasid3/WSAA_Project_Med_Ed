@@ -7,7 +7,7 @@ This repository contains my project for the Web Services and Applications (WSAA)
 
 ## Application: RCPI BST Applicant Management System
 
-I work in the Royal College of Physicians of Ireland (RCPI). Each year the College receives applications from doctors who have completed their medical degree and intern year and wish to begin their postgraduate medical education (med_ed) Basic Specialist Training (BST) in one of four specialties: Obstetrics and Gynaecology, Histopathology, General Internal Medicine, and Paediatrics.
+I work in the Royal College of Physicians of Ireland (RCPI). Each year the College receives applications from doctors who have completed their medical degree and intern year and wish to begin their postgraduate medical education (med_ed) Basic Specialist Training (BST) in one of four specialties: Obstetrics and Gynaecology, Histopathology, General Internal Medicine, and Paediatrics. Interestingly, the College is currently undergoing an organisation-wide digital transformation to improve work processes related to all stages of the Trainee journey, including the processes included here.
 
 This web application allows College administrators to manage those applicants — recording details, logging interview scores, marking offers, and tracking acceptances — through a clean browser interface backed by a REST API.
 
