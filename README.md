@@ -20,6 +20,8 @@ The following files are required to create and design this application:
 - The configuration file (db_config.py) handles the database file path separately, keeping database setup details separate from the application, 
 - CSS is used to style the webpage (using RCPI branding).
 
+A third-party API was not incorporated; the two-table relational model with staged business logic was deemed to be appropriate for the aims of this specific project/application.
+
 ### Live Application
 
 > **Hosted on PythonAnywhere:** https://owoods.eu.pythonanywhere.com
@@ -33,7 +35,7 @@ WSAA_Project_Med_Ed/
 ├── server.py               # Flask app — all API endpoints
 ├── BST_DAO.py              # Database access layer (parameterised queries, no SQL injection). 
 ├── db_config.py            # Database file path config
-├── schema.sql              # SQLite DDL — applied automatically on first run
+├── schema.sql              # SQLite DDL for reference; tables are created automatically by BST_DAO.py on first run
 ├── requirements.txt        # Python dependencies
 ├── static/
 │   ├── BSTApplications.html   # Single-page frontend
@@ -157,7 +159,7 @@ This project was built with the assistance of Claude (Anthropic) across three se
 
 ### Session 1 — Claude.ai (Web Chat)
 
-#### Prompt 1 — Project Brief
+#### Project Brief
 > *"I have to do this assignment: Create a Web application that uses RESTful APIs to perform CRUD operations to some data in one or more database tables, and/or some third party API..."*
 
 Provided the full assignment description. Claude summarised what was needed and asked clarifying questions about the application idea and technology preferences.
@@ -166,7 +168,7 @@ Provided the full assignment description. Claude summarised what was needed and 
 
 ---
 
-#### Prompt 2 — Application Design and Technical Spec
+#### Application Design and Technical Spec
 > *"I have my own idea... [full project description including RCPI BST context, database columns, CRUD operations, front-end requirements, file structure, and coding standards]*"
 
 Provided the full application concept and design, including the workflow (applications → interviews → offers → acceptances), required database fields, and technical constraints (no React, no template rendering, separate files, parameterised queries, connection pooling).
@@ -176,7 +178,7 @@ Provided the full application concept and design, including the workflow (applic
 
 ---
 
-#### Prompt 3 — PythonAnywhere Setup
+#### PythonAnywhere Setup
 > *"What version of Python should I select for the PythonAnywhere setup (Flask)?"*  
 > *"use rcppi so rename relevant files"*
 
@@ -188,7 +190,7 @@ Asked for guidance on Python version selection. Confirmed folder name as `rcppi_
 
 ### Session 2 — Claude Code (CLI)
 
-#### Prompt 4 — Recreating Files from Context
+#### Recreating Files from Context
 > *[Shared full Claude.ai conversation transcript]*  
 > *"yes [create all the files]"*
 
@@ -198,7 +200,7 @@ Continued in Claude Code. Claude recreated all project files from scratch based 
 
 ---
 
-#### Prompt 5 — Database Hosting Decision
+#### Database Hosting Decision
 > *"I need my database to be hosted separately to the DAO, flask server, etc. will this be ok"*  
 > *"is there no other option to use full mysql and not sqlite"*  
 > *"yes finish sqlite"*
@@ -209,7 +211,7 @@ Explored MySQL hosting options. Free PythonAnywhere plan does not support MySQL 
 
 ---
 
-#### Prompt 6 — Usability and Workflow Redesign
+#### Usability and Workflow Redesign
 > *"I need some changes made:*
 > *1. Main heading on webpage should be RCPI Basic Specialist Training Applicant Management System*
 > *2. I need a standalone function to add applicants using their first name, surname, date of birth and BST scheme only.*
@@ -224,7 +226,7 @@ Explored MySQL hosting options. Free PythonAnywhere plan does not support MySQL 
 
 ---
 
-#### Prompt 7 — Ranking Display
+#### Ranking Display
 > *"They are ranked by interview score"*
 
 Clarified that the View All Applicants table should display a rank column ordered by interview score descending.
@@ -234,14 +236,14 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ---
 
-#### Prompt 8 — Bug Fix: View All Not Loading
+#### Bug Fix: View All Not Loading
 > *"The view all applicants button isn't bringing them up. When I add the address bar goes to this: http://127.0.0.1:5000/?first_name=..."*
 
 **AI helped with:** Diagnosing and fixing a static file path bug — CSS and JS were not loading due to missing `/static/` prefix, causing the form to submit as a plain HTML GET request instead of AJAX.
 
 ---
 
-#### Prompt 9 — DOB Validation
+#### DOB Validation
 > *"Limit calendar on date of birth field so that applicants must be 21 years or older. This will need to update daily"*
 
 **Author designed:** The business rule that BST applicants must be at least 21 years old, derived from eligibility requirements.  
@@ -249,7 +251,7 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ---
 
-#### Prompt 10 — Branding and Visual Design
+#### Branding and Visual Design
 > *"Make the blue banner colour #11217D. Also include this logo in the top right corner of the webpage, in the banner. Get rid of the line through the banner."*  
 > *"Make the banner slightly darker, make the logo the height of the banner"*  
 > *"Increase it by 50% of its current size"* / *"There is blue banner below the logo, remove most of this"*  
@@ -261,7 +263,7 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ---
 
-#### Prompt 11 — Year-Based Access Control
+#### Year-Based Access Control
 > *"I need this system to be locked down to 2026 applicants only, but can select a new year to commence tracking that year e.g. 2027"*
 
 **Author designed:** The requirement to isolate applicant cohorts by year, reflecting how RCPI runs a new BST intake annually. The "Start New Year" concept mirrors the real administrative workflow.  
@@ -269,7 +271,7 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ---
 
-#### Prompt 12 — Offer Ranking Display
+#### Offer Ranking Display
 > *"In offer management, include a ranking score for interview score, starting with 1 for the highest. This needs to be for each of the medical specialties"*
 
 **Author designed:** The decision to show all scored applicants (not just offered ones) in the ranking, so administrators can see the full picture of who was ranked and why.  
@@ -277,14 +279,14 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ---
 
-#### Prompt 13 — Bug Fix: Apostrophe in Names
+#### Bug Fix: Apostrophe in Names
 > *"Caoimhe O'Neill entry, her button for Set Result won't work. All of the other buttons do"*
 
 **AI helped with:** Diagnosing and fixing a JavaScript bug where apostrophes in surnames (O'Neill, O'Brien etc.) broke inline `onclick` attributes. Fixed using HTML data attributes.
 
 ---
 
-#### Prompt 14 — Trainees Tab and Cascade Offer Logic
+#### Trainees Tab and Cascade Offer Logic
 > *"Move the final list of trainees button to its own tab beside 'acceptances'. Also, if someone is 'not accepted' the system needs to automatically assign the next ranked person in that specialty to an offer made status"*
 
 **Author designed:** The cascade offer logic reflects the real RCPI process where a declined offer is passed to the next eligible candidate on the ranked list. The decision to separate the Trainees list into its own tab improves clarity for administrators.  
@@ -292,7 +294,7 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ---
 
-#### Prompt 15 — Trainees Tab Labelling
+#### Trainees Tab Labelling
 > *"On the Trainees Tab, call this Scheme Trainees. Also change the text from 'Applicants who have accepted...' to 'To print a CSV file listing Trainees accepted onto a BST scheme, click here.' Remove the button 'Final list of trainees' and instead include a link when you click 'click here'"*
 
 **Author designed:** The decision to use inline link text rather than a button for a cleaner, less cluttered interface.  
@@ -302,7 +304,7 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ### Session 3 — Claude Code (CLI, continued)
 
-#### Prompt 16 — Per-Specialty Trainee Limits and Offer Numbering
+#### Per-Specialty Trainee Limits and Offer Numbering
 > *"The amount of trainees offered places for each of the specialties must be the following... Obstetrics and Gynaecology: 7 / Histopathology: 4 / Paediatrics: 8 / General Internal Medicine: 15. Do not allow the system to have more than this number of trainees in the final list of acceptees for csv download."*  
 > *"Make a note in the output that these are the maximum number or indicate the offer is offer 1 of 4, 2 of 4 etc for histopathology for example"*
 
@@ -311,7 +313,7 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ---
 
-#### Prompt 17 — Add Applicant Button Repositioning
+#### Add Applicant Button Repositioning
 > *"Move the 'add applicant' button to the left hand side, under the BST Scheme drop down menu"*  
 > *"Make the add applicant button only slightly wider than the text. It is far too big"*  
 > *"It is at the left hand side of the BST scheme drop down, align it to the right hand side of the dropdown"*
@@ -321,7 +323,7 @@ Clarified that the View All Applicants table should display a rank column ordere
 
 ---
 
-#### Prompt 26 — Add Second Database Table (bst_schemes)
+#### Add Second Database Table (bst_schemes)
 > *"Add bst schemes table"*
 
 Following a review of the assignment specification, a second database table was identified as an opportunity to demonstrate a more complete data model. The `bst_schemes` table stores the four BST specialties and their trainee place limits, replacing the previously hardcoded values in the DAO.
@@ -331,7 +333,7 @@ Following a review of the assignment specification, a second database table was 
 
 ---
 
-#### Prompt 25 — Always Show Applicant Dashboard
+#### Always Show Applicant Dashboard
 > *"Remove the View All Applicants / Hide Applicants button from the Applicant Dashboard. It should always be visible."*
 
 **Author designed:** Decided the toggle button added unnecessary friction — administrators need to see the full applicant list as their default view, not have to click to reveal it.  
@@ -339,7 +341,7 @@ Following a review of the assignment specification, a second database table was 
 
 ---
 
-#### Prompt 24 — Sort Indicator Arrows on Dashboard Column Headers
+#### Sort Indicator Arrows on Dashboard Column Headers
 > *"Put an arrow beside RCPPI ID, Scheme, Offered and Accepted column headers in the applicant dashboard so the user can see this is possible."*
 
 **Author designed:** Identified that sortable columns needed a visible affordance so administrators would know they could click to sort without being told.  
@@ -347,7 +349,7 @@ Following a review of the assignment specification, a second database table was 
 
 ---
 
-#### Prompt 23 — Applicant Dashboard Improvements
+#### Applicant Dashboard Improvements
 > *"Put in the option to order the columns of the applicant dashboard by RCPPI ID, Scheme, Offered, or Acceptance. Remove rank from this table as this is not correct here. Also, make the DOB in dd-mm-yyyy format."*
 
 **Author designed:** The decision to make the dashboard sortable to allow administrators to filter and review applicants by different criteria. Identified that the Rank column was misleading in an overview context (rank is only meaningful within a specialty, not across all applicants). Specified the dd-mm-yyyy date format as more readable for Irish administrative users.  
@@ -355,7 +357,7 @@ Following a review of the assignment specification, a second database table was 
 
 ---
 
-#### Prompt 22 — Applicant Dashboard Heading
+#### Applicant Dashboard Heading
 > *"Instead of the Applications tab heading of 'All Applicants' replace 'All Applicants' with 'Applicant Dashboard'."*
 
 **Author designed:** Chose the name "Applicant Dashboard" to better reflect that this table is an overview of all applicants and their status across the full workflow, not just a list.  
@@ -363,14 +365,14 @@ Following a review of the assignment specification, a second database table was 
 
 ---
 
-#### Prompt 21 — All Applicants Table Not Updating with Acceptance Status
+#### All Applicants Table Not Updating with Acceptance Status
 > *"The all applicants list on the first Applications tab is not updating with acceptance status after the accepted or not accepted process is complete."*
 
 **AI helped with:** Diagnosing that the All Applicants table was not being refreshed when switching back to the Applications tab or after recording an acceptance. Fixed by adding a reload call in both the tab-switch handler and the acceptance submission function.
 
 ---
 
-#### Prompt 20 — Exclude Waiting List Applicants from Acceptances Tab
+#### Exclude Waiting List Applicants from Acceptances Tab
 > *"When you go to confirm accepted or not, only the applicants who were offered a place should have the option to accept or not. The others on the waiting list should not be in this tab."*
 
 **Author designed:** The business rule that waiting list candidates should not be presented for acceptance decisions — only those within the official offer limit for their specialty should appear in the Acceptances tab.  
@@ -378,7 +380,7 @@ Following a review of the assignment specification, a second database table was 
 
 ---
 
-#### Prompt 19 — Rename Offers Button
+#### Rename Offers Button
 > *"In the Offer management tab, rename the button to 'Auto-Assign Offers per Specialty' instead of saying top 10 as this is no longer relevant"*
 
 **Author designed:** Identified that the button label was outdated following the move to per-specialty limits.  
@@ -386,7 +388,7 @@ Following a review of the assignment specification, a second database table was 
 
 ---
 
-#### Prompt 18 — Waiting List Status for Applicants Beyond Scheme Limit
+#### Waiting List Status for Applicants Beyond Scheme Limit
 > *"Offers are being extended to more than the number of places available. e.g. 6 offers made for 4 places. Those who are in places 5 and 6 need a status of waiting list instead of offer 5 of 4 etc."*
 
 **Author designed:** The business rule that applicants ranked beyond the available places should be designated as Waiting List rather than offered a place — reflecting how RCPI manages overflow candidates when not all offered applicants accept.  
