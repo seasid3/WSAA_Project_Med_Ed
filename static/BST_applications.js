@@ -16,14 +16,11 @@ async function initYearSelector() {
 
 function changeYear(year) {
     currentYear = year;
-    // Reload whichever tab is active
     const active = document.querySelector('.tab-content.active');
     if (active.id === 'tab-interviews')   loadInterviews();
     if (active.id === 'tab-offers')       loadOfferResults();
     if (active.id === 'tab-acceptances')  loadAcceptances();
-    if (active.id === 'tab-applications') {
-        loadAllApplicants();
-    }
+    if (active.id === 'tab-applications') loadAllApplicants();
 }
 
 function startNewYear() {
@@ -78,9 +75,9 @@ function showMsg(id, text, isError) {
 
 function statusBadge(status) {
     const map = {
-        completed:    ['Completed',        'badge-green'],
-        no_interview: ['No Interview',     'badge-orange'],
-        withdrawn:    ['Withdrawn',        'badge-red'],
+        completed:    ['Completed',    'badge-green'],
+        no_interview: ['No Interview', 'badge-orange'],
+        withdrawn:    ['Withdrawn',    'badge-red'],
     };
     if (!status) return '<span class="badge badge-grey">Pending</span>';
     const [text, cls] = map[status] || ['Unknown', 'badge-grey'];
@@ -88,8 +85,8 @@ function statusBadge(status) {
 }
 
 function offeredBadge(val) {
-    if (val === 1)  return '<span class="badge badge-green">Yes</span>';
-    if (val === 0)  return '<span class="badge badge-red">No</span>';
+    if (val === 1) return '<span class="badge badge-green">Yes</span>';
+    if (val === 0) return '<span class="badge badge-red">No</span>';
     return '<span class="badge badge-grey">—</span>';
 }
 
@@ -123,16 +120,12 @@ async function submitAdd(e) {
         const result = await res.json();
         showMsg('msg-add', `Applicant added — RCPPI ID: ${result.rcppi_id}`, false);
         form.reset();
-        // Refresh table if it's visible
-        if (!document.getElementById('all-applicants-section').classList.contains('hidden')) {
-            loadAllApplicants();
-        }
+        loadAllApplicants();
     } else {
         const err = await res.json().catch(() => ({}));
         showMsg('msg-add', err.description || 'Error adding applicant.', true);
     }
 }
-
 
 let allApplicantsData = [];
 let dashboardSort = { col: null, dir: 1 };
@@ -247,8 +240,8 @@ async function loadInterviews() {
 }
 
 function openInterviewModal(btn) {
-    const id          = btn.dataset.id;
-    const name        = btn.dataset.name;
+    const id            = btn.dataset.id;
+    const name          = btn.dataset.name;
     const currentStatus = btn.dataset.status;
     const currentScore  = btn.dataset.score || null;
     document.getElementById('interview-id').value = id;
@@ -256,12 +249,10 @@ function openInterviewModal(btn) {
         `Interview Result — ${name} (RCPPI ${id})`;
     document.getElementById('msg-interview-modal').textContent = '';
 
-    // Reset radios
     document.querySelectorAll('#form-interview input[type=radio]').forEach(r => r.checked = false);
     document.getElementById('interview-score').value = '';
     document.getElementById('score-input-wrap').classList.add('hidden');
 
-    // Pre-select current status
     if (currentStatus) {
         const radio = document.querySelector(`#form-interview input[value="${currentStatus}"]`);
         if (radio) {
@@ -315,7 +306,9 @@ async function submitInterview(e) {
 
 // ── Tab 3: Offers ─────────────────────────────────────────────
 async function assignOffers() {
-    if (!confirm('This will assign offers to the top-ranked applicants per specialty (Obs & Gynae: 7, Histopathology: 4, General Internal Medicine: 15, Paediatrics: 8) based on interview score. Any existing offers will be recalculated. Continue?')) return;
+    const limitSummary = Object.entries(SCHEME_LIMITS)
+        .map(([k, v]) => `${k}: ${v}`).join(', ');
+    if (!confirm(`This will assign offers to the top-ranked applicants per specialty (${limitSummary}) based on interview score. Any existing offers will be recalculated. Continue?`)) return;
     const res = await fetch(`${API}/assign-offers?year=${currentYear}`, { method: 'POST' });
     const data = await res.json();
     showMsg('msg-offers', `Done — ${data.offers_assigned} offer(s) assigned.`, false);
@@ -422,45 +415,6 @@ function buildAcceptanceTable(applicants) {
     </table>`;
 }
 
-async function downloadTraineeList() {
-    const res = await fetch(`${API}/acceptances?year=${currentYear}`);
-    const data = await res.json();
-    const accepted = data.filter(a => a.acceptance === 'accepted');
-
-    // Cap each specialty at its scheme limit
-    const trainees = [];
-    const schemes = ['Obstetrics and Gynaecology', 'Histopathology', 'General Internal Medicine', 'Paediatrics'];
-    schemes.forEach(scheme => {
-        const limit = SCHEME_LIMITS[scheme];
-        accepted.filter(a => a.bst_scheme === scheme).slice(0, limit).forEach(a => trainees.push(a));
-    });
-
-    if (!trainees.length) {
-        showMsg('msg-trainees', 'No accepted trainees to download yet.', true);
-        return;
-    }
-
-    function csvCell(val) {
-        const s = String(val ?? '');
-        return s.includes(',') || s.includes('"') || s.includes('\n')
-            ? `"${s.replace(/"/g, '""')}"` : s;
-    }
-
-    const headers = ['RCPPI ID', 'First Name', 'Surname', 'Date of Birth', 'BST Scheme', 'Interview Score'];
-    const rows = trainees.map(a => [
-        a.rcppi_id, a.first_name, a.surname, a.dob, a.bst_scheme, a.interview_score ?? ''
-    ].map(csvCell));
-
-    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'BST_Final_Trainee_List.csv';
-    link.click();
-    URL.revokeObjectURL(url);
-}
-
 async function setAcceptance(id, acceptance) {
     const res = await fetch(`${API}/${id}/acceptance`, {
         method: 'PUT',
@@ -499,7 +453,8 @@ async function loadTrainees() {
         if (!group.length) return;
         const div = document.createElement('div');
         div.className = 'card scheme-group';
-        div.innerHTML = `<h4>${scheme} <span class="scheme-meta">${group.length} of ${limit} trainee(s)</span></h4>` + buildTraineeTable(group, limit);
+        div.innerHTML = `<h4>${scheme} <span class="scheme-meta">${group.length} of ${limit} trainee(s)</span></h4>`
+            + buildTraineeTable(group, limit);
         container.appendChild(div);
     });
 }
@@ -517,6 +472,44 @@ function buildTraineeTable(applicants, limit) {
         <thead><tr><th>Position</th><th>RCPPI ID</th><th>Name</th><th>DOB</th><th>Interview Score</th></tr></thead>
         <tbody>${rows}</tbody>
     </table>`;
+}
+
+async function downloadTraineeList() {
+    const res = await fetch(`${API}/acceptances?year=${currentYear}`);
+    const data = await res.json();
+    const accepted = data.filter(a => a.acceptance === 'accepted');
+
+    const trainees = [];
+    const schemes = ['Obstetrics and Gynaecology', 'Histopathology', 'General Internal Medicine', 'Paediatrics'];
+    schemes.forEach(scheme => {
+        const limit = SCHEME_LIMITS[scheme];
+        accepted.filter(a => a.bst_scheme === scheme).slice(0, limit).forEach(a => trainees.push(a));
+    });
+
+    if (!trainees.length) {
+        showMsg('msg-trainees', 'No accepted trainees to download yet.', true);
+        return;
+    }
+
+    function csvCell(val) {
+        const s = String(val ?? '');
+        return s.includes(',') || s.includes('"') || s.includes('\n')
+            ? `"${s.replace(/"/g, '""')}"` : s;
+    }
+
+    const headers = ['RCPPI ID', 'First Name', 'Surname', 'Date of Birth', 'BST Scheme', 'Interview Score'];
+    const rows = trainees.map(a => [
+        a.rcppi_id, a.first_name, a.surname, a.dob, a.bst_scheme, a.interview_score ?? ''
+    ].map(csvCell));
+
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'BST_Final_Trainee_List.csv';
+    link.click();
+    URL.revokeObjectURL(url);
 }
 
 // ── Startup ───────────────────────────────────────────────────
